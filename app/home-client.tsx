@@ -20,6 +20,37 @@ import { type Locale, type SiteProfile } from "./profile";
 type ChatMessage = { role: "user" | "assistant"; content: string };
 type HeroMode = "agent" | "gallery";
 
+const publication = {
+  title: "A Continuous-Space Overcooked Simulator for Multi-Agent Coordination",
+  venue: "ABC 2026 · Accepted",
+};
+
+const projectVisuals: Record<string, string> = {
+  "job-application-agent": "/assets/projects/job-agent-editorial.png",
+  covs: "/assets/projects/covs-research-editorial.png",
+  "azure-sdk": "/assets/projects/azure-identity-editorial.png",
+  "immersive-resume": "/assets/kivo-redo/prism-agent.png",
+};
+
+const projectSignals: Record<string, Record<Locale, string[]>> = {
+  "job-application-agent": {
+    zh: ["简历事实检索", "招聘问答", "多智能体审阅"],
+    en: ["Résumé grounding", "Recruiter Q&A", "Multi-agent review"],
+  },
+  covs: {
+    zh: ["ABC 2026 已接收", "连续动作空间", "人机协作研究"],
+    en: ["ABC 2026 accepted", "Continuous action", "Human–AI coordination"],
+  },
+  "azure-sdk": {
+    zh: ["官方仓库贡献", "Identity + Key Vault", "跨国团队协作"],
+    en: ["Official repositories", "Identity + Key Vault", "Global collaboration"],
+  },
+  "immersive-resume": {
+    zh: ["中英双语", "服务端 AI", "可编辑资料库"],
+    en: ["Bilingual", "Server-side AI", "Editable knowledge base"],
+  },
+};
+
 function chatErrorMessage(locale: Locale, detail: string) {
   if (detail.includes("balance")) {
     return locale === "zh" ? "DeepSeek 账户余额不足，请联系网站管理员充值后再试。" : "The DeepSeek account has insufficient balance.";
@@ -45,16 +76,22 @@ const copy = {
     prompt: "问一个关于我的问题",
     send: "发送",
     suggestions: ["你是谁？", "你最擅长解决什么？", "带我看项目"],
+    proof: "雇主快速判断",
+    educationProof: "当前教育",
+    paperProof: "论文",
+    honorsProof: "荣誉与奖学金",
+    verified: "基于已核实简历",
+    answerLabel: "WANG XINLONG · DIGITAL PERSONA",
     dockAgent: "你的问题决定入口；我的项目提供证据。",
     dockGallery: "点击任意卡片，进入对应项目。",
     scroll: "继续浏览",
     selected: "SELECTED WORK · 精选项目",
-    projectsTitle: "证据，比形容词更有说服力。",
-    projectsIntro: "每个项目都连接问题、过程与结果。资料缺失处会明确标记，不用虚构填满页面。",
+    projectsTitle: "不是作品列表，是雇佣我的理由。",
+    projectsIntro: "从 AI 智能体到人机协作研究，再到 Azure 官方 SDK：每个案例都先展示问题、能力与可核实证据。",
     viewCase: "展开案例",
     closeCase: "收起案例",
     journey: "JOURNEY · 经历",
-    journeyTitle: "从想法到交付的路径。",
+    journeyTitle: "研究深度，来自工程现场。",
     capabilities: "CAPABILITIES · 能力",
     education: "EDUCATION · 教育",
     honors: "HONORS · 荣誉",
@@ -83,16 +120,22 @@ const copy = {
     prompt: "Ask something about me",
     send: "Send",
     suggestions: ["Who are you?", "What do you solve best?", "Show me your work"],
+    proof: "Employer snapshot",
+    educationProof: "Current education",
+    paperProof: "Publication",
+    honorsProof: "Honors & scholarships",
+    verified: "Grounded in verified résumé facts",
+    answerLabel: "WANG XINLONG · DIGITAL PERSONA",
     dockAgent: "Your question sets the direction. My work provides the proof.",
     dockGallery: "Select a card to enter the project.",
     scroll: "Keep exploring",
     selected: "SELECTED WORK",
-    projectsTitle: "Evidence speaks louder.",
-    projectsIntro: "Each project connects the problem, process, and outcome. Missing facts are marked clearly instead of invented.",
+    projectsTitle: "Not a project list. Reasons to hire me.",
+    projectsIntro: "From AI agents and human–AI research to official Azure SDK work, each case leads with the problem, capability, and verifiable evidence.",
     viewCase: "Open case",
     closeCase: "Close case",
     journey: "JOURNEY",
-    journeyTitle: "A path from idea to delivery.",
+    journeyTitle: "Research depth, grounded in engineering.",
     capabilities: "CAPABILITIES",
     education: "EDUCATION",
     honors: "HONORS",
@@ -208,7 +251,7 @@ export default function HomeClient({ initialProfile: PROFILE }: { initialProfile
   const navTargets = ["#ask", "#work", "#journey"];
 
   return (
-    <main>
+    <main className={`locale-${locale}`}>
       <section className="hero" id="ask">
         <div className="hero-shade" aria-hidden="true" />
 
@@ -246,24 +289,67 @@ export default function HomeClient({ initialProfile: PROFILE }: { initialProfile
           <p>{t.eyebrow}</p>
           <h1>{PROFILE.displayName}</h1>
           <span>{PROFILE.role[locale]}</span>
+          <strong>{PROFILE.persona.headline[locale]}</strong>
         </header>
+
+        <aside className="hero-evidence" aria-label={t.proof}>
+          <div className="evidence-heading">
+            <span>{t.proof}</span>
+            <i>{t.verified}</i>
+          </div>
+          <article>
+            <span>01 · {t.educationProof}</span>
+            <strong>{PROFILE.education[0]?.degree[locale]} · {PROFILE.education[0]?.school[locale]}</strong>
+            <p>{PROFILE.education[0]?.period} · {PROFILE.education[0]?.field[locale]}</p>
+          </article>
+          <article>
+            <span>02 · {t.paperProof}</span>
+            <strong>{publication.title}</strong>
+            <p>{publication.venue}</p>
+          </article>
+          <article>
+            <span>03 · {t.honorsProof}</span>
+            <strong>{PROFILE.honors[locale]?.slice(0, 2).join(" · ")}</strong>
+            <p>{PROFILE.honors[locale]?.length ?? 0} {locale === "zh" ? "项已核实荣誉" : "verified recognitions"}</p>
+          </article>
+        </aside>
 
         <div className={`experience-stage mode-${heroMode}`}>
           {heroMode === "agent" ? (
             <div className="agent-view">
-              <button
-                className={`wake-orb ${isLoading ? "thinking" : ""}`}
-                type="button"
-                aria-label={t.wake}
-                onClick={() => document.querySelector<HTMLInputElement>("#agent-question")?.focus()}
-              >
-                <span className="orb-shell">
-                  <img src={PROFILE.portrait} alt="" />
-                  <i><Mic2 strokeWidth={1.5} /></i>
-                </span>
-                <span className="orb-halo" />
-              </button>
-              <p className="stage-instruction">{t.wake}</p>
+              {messages.length === 0 ? (
+                <>
+                  <button
+                    className={`wake-orb ${isLoading ? "thinking" : ""}`}
+                    type="button"
+                    aria-label={t.wake}
+                    onClick={() => document.querySelector<HTMLInputElement>("#agent-question")?.focus()}
+                  >
+                    <span className="orb-shell">
+                      <img src={PROFILE.portrait} alt="" />
+                      <i><Mic2 strokeWidth={1.5} /></i>
+                    </span>
+                    <span className="orb-halo" />
+                  </button>
+                  <p className="stage-instruction">{t.wake}</p>
+                </>
+              ) : (
+                <div className="central-chat" aria-live="polite">
+                  <div className="central-chat-header">
+                    <img src={PROFILE.portrait} alt="" />
+                    <div><span>{t.answerLabel}</span><i>{isLoading ? "THINKING" : "GROUNDED ANSWER"}</i></div>
+                  </div>
+                  <div className="chat-log">
+                    {messages.slice(-4).map((message, index) => (
+                      <div className={`message ${message.role}`} key={`${message.role}-${index}`}>
+                        <span>{message.role === "user" ? "YOU" : "AI"}</span>
+                        <p>{message.content || "•••"}</p>
+                      </div>
+                    ))}
+                    <div ref={chatEndRef} />
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="gallery-view">
@@ -281,7 +367,7 @@ export default function HomeClient({ initialProfile: PROFILE }: { initialProfile
                       onClick={() => offset === 0 ? openProject(index) : setActiveSlide(index)}
                       aria-label={project.title[locale]}
                     >
-                      <img src={project.image} alt="" />
+                      <img src={projectVisuals[project.id] ?? project.image} alt="" />
                       <span>{project.title[locale]}</span>
                     </button>
                   );
@@ -294,18 +380,6 @@ export default function HomeClient({ initialProfile: PROFILE }: { initialProfile
                 </button>
               </div>
               <p className="stage-instruction"><Hand size={20} />{t.browse}</p>
-            </div>
-          )}
-
-          {messages.length > 0 && heroMode === "agent" && (
-            <div className="chat-log" aria-live="polite">
-              {messages.slice(-4).map((message, index) => (
-                <div className={`message ${message.role}`} key={`${message.role}-${index}`}>
-                  <span>{message.role === "user" ? "YOU" : "AI"}</span>
-                  <p>{message.content || "•••"}</p>
-                </div>
-              ))}
-              <div ref={chatEndRef} />
             </div>
           )}
         </div>
@@ -340,7 +414,7 @@ export default function HomeClient({ initialProfile: PROFILE }: { initialProfile
                   onClick={() => setActiveSlide(index)}
                   aria-label={project.title[locale]}
                 >
-                  <img src={project.image} alt="" />
+                  <img src={projectVisuals[project.id] ?? project.image} alt="" />
                 </button>
               ))}
             </div>
@@ -368,20 +442,22 @@ export default function HomeClient({ initialProfile: PROFILE }: { initialProfile
         <div className="project-stack">
           {PROFILE.projects.map((project, index) => {
             const isActive = activeProject === index;
+            const signals = projectSignals[project.id]?.[locale] ?? project.tags.slice(0, 3);
             return (
-              <article className={`project-card tone-${index + 1}`} key={project.id}>
+              <article className={`project-card tone-${index + 1} ${index === 0 ? "featured" : ""}`} key={project.id}>
                 <div className="project-visual">
                   <div className="project-number">0{index + 1}</div>
-                  <div className="project-image-deck">
-                    <span className="image-echo echo-left" />
-                    <img src={project.image} alt={project.title[locale]} />
-                    <span className="image-echo echo-right" />
-                  </div>
+                  <img src={projectVisuals[project.id] ?? project.image} alt={project.title[locale]} />
                 </div>
                 <div className="project-copy">
                   <div className="project-meta"><span>{project.year}</span><span>{project.type[locale]}</span></div>
                   <h3>{project.title[locale]}</h3>
                   <p>{project.summary[locale]}</p>
+                  <div className="project-signals">
+                    {signals.map((signal, signalIndex) => (
+                      <span key={signal}><i>0{signalIndex + 1}</i>{signal}</span>
+                    ))}
+                  </div>
                   <div className="project-tags">{project.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
                   <button type="button" onClick={() => setActiveProject(isActive ? null : index)} aria-expanded={isActive}>
                     {isActive ? t.closeCase : t.viewCase}
