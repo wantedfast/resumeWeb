@@ -77,7 +77,7 @@ const copy = {
     send: "发送",
     suggestions: ["你是谁？", "你最擅长解决什么？", "带我看项目"],
     proof: "雇主快速判断",
-    educationProof: "当前教育",
+    educationProof: "完整学历",
     paperProof: "论文",
     honorsProof: "荣誉与奖学金",
     verified: "基于已核实简历",
@@ -121,7 +121,7 @@ const copy = {
     send: "Send",
     suggestions: ["Who are you?", "What do you solve best?", "Show me your work"],
     proof: "Employer snapshot",
-    educationProof: "Current education",
+    educationProof: "Complete education",
     paperProof: "Publication",
     honorsProof: "Honors & scholarships",
     verified: "Grounded in verified résumé facts",
@@ -297,11 +297,20 @@ export default function HomeClient({ initialProfile: PROFILE }: { initialProfile
             <span>{t.proof}</span>
             <i>{t.verified}</i>
           </div>
-          <article>
+          <section className="evidence-education">
             <span>01 · {t.educationProof}</span>
-            <strong>{PROFILE.education[0]?.degree[locale]} · {PROFILE.education[0]?.school[locale]}</strong>
-            <p>{PROFILE.education[0]?.period} · {PROFILE.education[0]?.field[locale]}</p>
-          </article>
+            <div>
+              {PROFILE.education.map((item) => (
+                <article key={`${item.period}-${item.degree.en}`}>
+                  <b>{item.period}</b>
+                  <p>
+                    <strong>{item.degree[locale]} · {item.school[locale]}</strong>
+                    <small>{item.field[locale]}</small>
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
           <article>
             <span>02 · {t.paperProof}</span>
             <strong>{publication.title}</strong>

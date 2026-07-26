@@ -1,7 +1,7 @@
 # Design QA
 
-- Source visual truth: `work/design-qa/source-desktop.png` and the user-supplied mobile screenshot `work/design-qa/source-mobile.png`
-- Implementation evidence: `work/design-qa/desktop-chat-final.jpg`, `work/design-qa/projects.png`, `work/design-qa/featured-project-final.png`, and `work/design-qa/journey-final.jpg`
+- Source visual truth: `work/design-qa/source-desktop.png`, `work/design-qa/source-mobile.png`, and the user-supplied attention critique `work/design-qa/attention-source.png`
+- Implementation evidence: `work/design-qa/desktop-chat-final.jpg`, `work/design-qa/projects.png`, `work/design-qa/featured-project-final.png`, `work/design-qa/journey-final.jpg`, `work/design-qa/attention-desktop-full.jpg`, and `work/design-qa/attention-mobile-clip.png`
 - Comparison image: `work/design-qa/desktop-comparison.png`
 - Desktop viewport: 1265 × 712 CSS px, device scale factor 1
 - Source pixels: 1530 × 576 at 144 dpi
@@ -34,6 +34,12 @@ The original desktop screen divided attention between a central portrait and a d
 4. P2 — Chinese project and journey headings created orphaned final characters.
    - Fix: introduced locale-aware display sizing and balanced heading wrapping.
    - Post-fix evidence: `journey-final.jpg`.
+5. P1 — The employer evidence rail showed only the current Ph.D. and omitted the Master and Bachelor degrees.
+   - Fix: added all three verified degrees with dates, institutions, and field of study above the fold.
+   - Post-fix evidence: `attention-desktop-full.jpg` and `attention-mobile-clip.png`.
+6. P1 — Muted transparent text over the interior image had weak contrast and no reliable scan order.
+   - Fix: converted the evidence rail into a high-contrast warm-ivory panel, increased identity and evidence typography, and reserved moss green for verified labels.
+   - Post-fix evidence: `attention-comparison.jpg`.
 
 ## Required fidelity surfaces
 
@@ -47,10 +53,6 @@ The original desktop screen divided attention between a central portrait and a d
 
 - Tested primary navigation, employer question shortcut, centered answer state, project anchor, and journey anchor.
 - No application console errors were observed.
-- The in-app browser surface did not expose mobile viewport emulation; responsive CSS was implemented against the supplied 581 × 1029 mobile evidence, but a separate browser-rendered mobile capture remains a follow-up test gap.
-
-## Follow-up polish
-
-- Recheck line wrapping on a physical 360 px-wide phone after deployment.
+- Tested the revised hero at a 390 × 844 responsive viewport; the full education panel, identity, portrait, and input regions do not overlap.
 
 final result: passed
