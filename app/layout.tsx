@@ -14,18 +14,18 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase,
-    title: "Your Name — AI Résumé",
-    description: "A bilingual, conversational portfolio powered by verified experience.",
+    title: "Wang Xinlong — AI Résumé",
+    description: "Wang Xinlong 的沉浸式双语简历智能体。",
     icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
     openGraph: {
-      title: "Your Name — Ask my résumé",
+      title: "Wang Xinlong — Ask my résumé",
       description: "Don’t just read my résumé. Ask me.",
       type: "website",
       images: [new URL("/og.png", metadataBase).toString()],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Your Name — Ask my résumé",
+      title: "Wang Xinlong — Ask my résumé",
       description: "Don’t just read my résumé. Ask me.",
       images: [new URL("/og.png", metadataBase).toString()],
     },
