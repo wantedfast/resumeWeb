@@ -20,6 +20,19 @@ import { type Locale, type SiteProfile } from "./profile";
 type ChatMessage = { role: "user" | "assistant"; content: string };
 type HeroMode = "agent" | "gallery";
 
+function chatErrorMessage(locale: Locale, detail: string) {
+  if (detail.includes("balance")) {
+    return locale === "zh" ? "DeepSeek 账户余额不足，请联系网站管理员充值后再试。" : "The DeepSeek account has insufficient balance.";
+  }
+  if (detail.includes("key")) {
+    return locale === "zh" ? "DeepSeek 密钥无效，请联系网站管理员更新配置。" : "The DeepSeek API key is invalid.";
+  }
+  if (detail.includes("busy")) {
+    return locale === "zh" ? "DeepSeek 当前繁忙，请稍后再试。" : "DeepSeek is busy. Please retry shortly.";
+  }
+  return locale === "zh" ? "智能体暂时无法连接，请稍后再试。" : "The agent is unavailable right now. Please try again shortly.";
+}
+
 const copy = {
   zh: {
     nav: ["对话", "项目", "经历"],
@@ -159,7 +172,10 @@ export default function HomeClient({ initialProfile: PROFILE }: { initialProfile
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: nextMessages.slice(-10), locale }),
       });
-      if (!response.ok || !response.body) throw new Error("Chat request failed");
+      if (!response.ok || !response.body) {
+        const payload = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(payload?.error ?? "Chat request failed");
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -171,8 +187,9 @@ export default function HomeClient({ initialProfile: PROFILE }: { initialProfile
         setMessages([...nextMessages, { role: "assistant", content: answer }]);
       }
       if (!answer.trim()) setMessages([...nextMessages, { role: "assistant", content: t.setup }]);
-    } catch {
-      setMessages([...nextMessages, { role: "assistant", content: t.error }]);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "";
+      setMessages([...nextMessages, { role: "assistant", content: chatErrorMessage(locale, detail) }]);
     } finally {
       setIsLoading(false);
     }

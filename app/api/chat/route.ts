@@ -52,7 +52,7 @@ Answer only reasonable questions about this person's career, capabilities, proje
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: "deepseek-chat",
+        model: "deepseek-v4-flash",
         stream: true,
         max_tokens: 500,
         temperature: 0.2,
@@ -65,7 +65,22 @@ Answer only reasonable questions about this person's career, capabilities, proje
   }
 
   if (!upstream.ok || !upstream.body) {
-    return jsonError(upstream.status === 402 ? "DeepSeek balance is insufficient" : "DeepSeek request failed", 502);
+    const requestId = upstream.headers.get("x-request-id") ?? undefined;
+    console.error("DeepSeek request failed", {
+      status: upstream.status,
+      requestId,
+    });
+
+    if (upstream.status === 401 || upstream.status === 403) {
+      return jsonError("DeepSeek API key is invalid", 502);
+    }
+    if (upstream.status === 402) {
+      return jsonError("DeepSeek balance is insufficient", 502);
+    }
+    if (upstream.status === 429) {
+      return jsonError("DeepSeek is busy. Please retry shortly", 503);
+    }
+    return jsonError("DeepSeek request failed", 502);
   }
 
   const decoder = new TextDecoder();
