@@ -593,3 +593,892 @@ footer a { display: flex; align-items: center; gap: 8px; }
     transition-duration: .01ms !important;
   }
 }
+
+/* Apple component language — preserves the existing layout and content flow. */
+:root {
+  --cream: #f5f5f7;
+  --lime: #8fd3ff;
+  --dark: #0b0b0d;
+  --ink: #1d1d1f;
+  --muted: rgba(245, 245, 247, .68);
+  --glass: rgba(30, 30, 32, .52);
+  --line: rgba(255, 255, 255, .14);
+  --apple-blue: #0a84ff;
+  --apple-blue-light: #64d2ff;
+  --apple-label: #f5f5f7;
+  --apple-secondary: rgba(245, 245, 247, .68);
+  --apple-tertiary: rgba(245, 245, 247, .42);
+  --apple-dark-material: rgba(28, 28, 30, .68);
+  --apple-light-material: rgba(250, 250, 252, .86);
+  --apple-separator: rgba(60, 60, 67, .18);
+  --apple-shadow: 0 18px 50px rgba(0, 0, 0, .16);
+}
+
+body {
+  background: var(--dark);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+a,
+input,
+textarea {
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+a {
+  transition:
+    color .22s cubic-bezier(.25, .1, .25, 1),
+    background-color .22s cubic-bezier(.25, .1, .25, 1),
+    border-color .22s cubic-bezier(.25, .1, .25, 1),
+    opacity .22s cubic-bezier(.25, .1, .25, 1),
+    transform .22s cubic-bezier(.25, .1, .25, 1);
+}
+
+button:active,
+a:active {
+  transform: scale(.98);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(10, 132, 255, .56);
+  outline-offset: 3px;
+}
+
+svg {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hero-shade {
+  background:
+    linear-gradient(90deg, rgba(6, 6, 8, .62), rgba(6, 6, 8, .2) 44%, rgba(6, 6, 8, .08) 70%, rgba(6, 6, 8, .34)),
+    linear-gradient(180deg, rgba(6, 6, 8, .24), transparent 40%, rgba(6, 6, 8, .42));
+}
+
+.hero::after {
+  box-shadow: inset 0 0 120px rgba(0, 0, 0, .18);
+}
+
+.glass-nav {
+  height: 60px;
+  padding: 7px 8px 7px 24px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 22px;
+  background: rgba(28, 28, 30, .58);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .14),
+    0 14px 42px rgba(0, 0, 0, .18);
+  backdrop-filter: blur(34px) saturate(150%);
+  -webkit-backdrop-filter: blur(34px) saturate(150%);
+}
+
+.wordmark {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -.035em;
+}
+
+.nav-links {
+  gap: 3px;
+}
+
+.nav-links a {
+  min-height: 40px;
+  padding: 0 17px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: rgba(255, 255, 255, .62);
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.nav-links a.active,
+.nav-links a:hover,
+.nav-links a:focus-visible {
+  color: #fff;
+  background: rgba(255, 255, 255, .12);
+  box-shadow: none;
+}
+
+.nav-links a:focus-visible {
+  outline: 3px solid rgba(10, 132, 255, .5);
+}
+
+.locale-toggle,
+.menu-button {
+  min-width: 44px;
+  height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .1);
+  color: rgba(255, 255, 255, .88);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.locale-toggle:hover,
+.menu-button:hover {
+  background: rgba(255, 255, 255, .16);
+}
+
+.hero-identity p {
+  margin-bottom: 7px;
+  color: var(--apple-blue-light);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: .12em;
+}
+
+.hero-identity h1 {
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+  font-size: clamp(42px, 4.2vw, 64px);
+  font-weight: 700;
+  line-height: .98;
+  letter-spacing: -.055em;
+  text-shadow: 0 6px 28px rgba(0, 0, 0, .24);
+}
+
+.hero-identity span {
+  color: rgba(255, 255, 255, .7);
+  font-size: 12px;
+  font-weight: 590;
+}
+
+.hero-identity strong {
+  color: rgba(255, 255, 255, .94);
+  font-size: clamp(13px, 1.12vw, 17px);
+  font-weight: 560;
+  letter-spacing: -.012em;
+}
+
+.hero-evidence {
+  border: 1px solid rgba(255, 255, 255, .42);
+  border-radius: 26px;
+  background: var(--apple-light-material);
+  box-shadow:
+    0 22px 55px rgba(0, 0, 0, .18),
+    inset 0 1px 0 rgba(255, 255, 255, .72);
+  backdrop-filter: blur(30px) saturate(130%);
+  -webkit-backdrop-filter: blur(30px) saturate(130%);
+  color: var(--ink);
+}
+
+.evidence-heading {
+  border-bottom-color: var(--apple-separator);
+}
+
+.evidence-heading span {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -.015em;
+}
+
+.evidence-heading i {
+  color: #6e6e73;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
+  font-size: 9px;
+  font-weight: 520;
+  letter-spacing: 0;
+}
+
+.hero-evidence > article,
+.evidence-education {
+  border-bottom-color: var(--apple-separator);
+}
+
+.hero-evidence > article > span,
+.evidence-education > span {
+  color: #6e6e73;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
+  font-size: 8px;
+  font-weight: 650;
+  letter-spacing: .07em;
+}
+
+.evidence-education article {
+  border-bottom-color: rgba(60, 60, 67, .12);
+}
+
+.evidence-education article > b {
+  color: #6e6e73;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  font-size: 8px;
+  font-weight: 560;
+}
+
+.evidence-education strong,
+.hero-evidence > article strong {
+  color: #1d1d1f;
+  font-weight: 650;
+  letter-spacing: -.018em;
+}
+
+.evidence-education small,
+.hero-evidence > article p {
+  color: #6e6e73;
+  font-weight: 500;
+}
+
+.wake-orb {
+  width: 156px;
+  height: 156px;
+}
+
+.orb-shell {
+  width: 118px;
+  height: 118px;
+  border: 4px solid rgba(255, 255, 255, .74);
+  background: rgba(255, 255, 255, .1);
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, .22),
+    0 0 0 1px rgba(255, 255, 255, .18);
+}
+
+.orb-shell i {
+  width: 34px;
+  height: 34px;
+  right: -2px;
+  bottom: 5px;
+  border: 3px solid rgba(255, 255, 255, .9);
+  background: var(--apple-blue);
+  box-shadow: 0 7px 18px rgba(10, 132, 255, .3);
+}
+
+.orb-shell i svg {
+  width: 16px;
+}
+
+.orb-halo {
+  border-color: rgba(255, 255, 255, .22);
+  animation: none;
+}
+
+.wake-orb:hover .orb-shell {
+  transform: scale(1.025);
+}
+
+.wake-orb:active .orb-shell {
+  transform: scale(.98);
+}
+
+.stage-instruction {
+  color: rgba(255, 255, 255, .84);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+  font-size: clamp(18px, 1.7vw, 25px);
+  font-weight: 580;
+  letter-spacing: -.025em;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .4);
+}
+
+.central-chat {
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 28px;
+  background: rgba(28, 28, 30, .66);
+  box-shadow: var(--apple-shadow);
+  backdrop-filter: blur(36px) saturate(145%);
+  -webkit-backdrop-filter: blur(36px) saturate(145%);
+}
+
+.central-chat-header {
+  border-bottom-color: rgba(255, 255, 255, .11);
+}
+
+.central-chat-header img {
+  border-color: rgba(255, 255, 255, .5);
+}
+
+.central-chat-header span,
+.central-chat-header i,
+.message > span {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  letter-spacing: .04em;
+}
+
+.central-chat-header i {
+  color: var(--apple-blue-light);
+}
+
+.message p {
+  border: 0;
+  border-radius: 17px;
+  color: rgba(255, 255, 255, .92);
+  background: rgba(118, 118, 128, .24);
+  box-shadow: none;
+}
+
+.message.user p {
+  color: #fff;
+  background: var(--apple-blue);
+}
+
+.hero-dock {
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 26px;
+  background: rgba(28, 28, 30, .64);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .12),
+    0 16px 48px rgba(0, 0, 0, .2);
+  backdrop-filter: blur(34px) saturate(145%);
+  -webkit-backdrop-filter: blur(34px) saturate(145%);
+}
+
+.dock-copy span {
+  color: var(--apple-blue-light);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  font-weight: 650;
+  letter-spacing: .08em;
+}
+
+.dock-copy p {
+  color: rgba(255, 255, 255, .78);
+  font-weight: 500;
+}
+
+.prompt-form {
+  border: 1px solid rgba(255, 255, 255, .13);
+  border-radius: 18px;
+  background: rgba(118, 118, 128, .18);
+}
+
+.prompt-form:focus-within {
+  border-color: rgba(10, 132, 255, .68);
+  box-shadow: 0 0 0 4px rgba(10, 132, 255, .14);
+}
+
+.prompt-form input {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 480;
+}
+
+.prompt-form input::placeholder {
+  color: rgba(235, 235, 245, .46);
+}
+
+.prompt-form button {
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  background: var(--apple-blue);
+  box-shadow: 0 8px 22px rgba(10, 132, 255, .28);
+}
+
+.prompt-form button:hover:not(:disabled) {
+  background: #2795ff;
+}
+
+.prompt-form button:disabled {
+  color: rgba(235, 235, 245, .32);
+  background: rgba(118, 118, 128, .22);
+  box-shadow: none;
+}
+
+.suggestions button {
+  min-height: 42px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .62);
+}
+
+.suggestions button:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, .055);
+}
+
+.suggestions button span {
+  color: rgba(255, 255, 255, .34);
+}
+
+.spatial-card {
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 26px;
+  background: rgba(28, 28, 30, .62);
+  box-shadow: 0 22px 54px rgba(0, 0, 0, .24);
+}
+
+.spatial-card::after {
+  background: linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, .7));
+}
+
+.spatial-card span {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
+  font-size: 13px;
+  font-weight: 620;
+}
+
+.carousel-arrow {
+  width: 46px;
+  height: 46px;
+  border: 0;
+  background: rgba(28, 28, 30, .7);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .18);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.dock-thumbnails {
+  gap: 8px;
+}
+
+.dock-thumbnails button {
+  border: 0;
+  border-radius: 13px;
+  opacity: .54;
+  box-shadow: none;
+}
+
+.dock-thumbnails button.active {
+  opacity: 1;
+  box-shadow: 0 0 0 3px var(--apple-blue);
+}
+
+.scroll-cue {
+  color: rgba(255, 255, 255, .54);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  letter-spacing: .02em;
+}
+
+.scroll-cue svg {
+  animation: none;
+}
+
+.work-section {
+  background: #f5f5f7;
+  color: #1d1d1f;
+}
+
+.eyebrow {
+  color: #6e6e73;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .08em;
+}
+
+.section-heading h2,
+.section-heading.compact h2,
+.about-copy h2 {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+  font-weight: 700;
+  letter-spacing: -.06em;
+}
+
+.section-heading > p:last-child {
+  color: #6e6e73;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.project-stack {
+  gap: 22px;
+}
+
+.project-card,
+.project-card.tone-2,
+.project-card.tone-3 {
+  border: 1px solid rgba(0, 0, 0, .06);
+  border-radius: 30px;
+  color: #1d1d1f;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, .08);
+}
+
+.project-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 24px 58px rgba(0, 0, 0, .11);
+}
+
+.project-visual {
+  background: #e8e8ed;
+}
+
+.project-number {
+  min-width: 36px;
+  height: 36px;
+  border: 0;
+  color: #fff;
+  background: rgba(28, 28, 30, .68);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .16);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.project-meta {
+  color: #6e6e73;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  letter-spacing: .055em;
+}
+
+.project-copy h3 {
+  color: #1d1d1f;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+  font-weight: 700;
+  letter-spacing: -.055em;
+}
+
+.project-copy > p,
+.project-detail p {
+  color: #6e6e73;
+}
+
+.project-signals {
+  border-top-color: var(--apple-separator);
+  border-bottom-color: var(--apple-separator);
+}
+
+.project-signals span {
+  color: #3a3a3c;
+}
+
+.project-signals span + span {
+  border-left-color: var(--apple-separator);
+}
+
+.project-signals i {
+  color: var(--apple-blue);
+}
+
+.project-tags span {
+  border: 0;
+  color: #515154;
+  background: #f2f2f7;
+}
+
+.project-copy button {
+  min-height: 48px;
+  border-top-color: var(--apple-separator);
+  color: var(--apple-blue);
+  font-weight: 600;
+}
+
+.project-detail {
+  border-top-color: var(--apple-separator);
+  animation: apple-reveal .28s cubic-bezier(.25, .1, .25, 1) both;
+}
+
+.project-detail a {
+  color: var(--apple-blue);
+}
+
+.journey-section {
+  background: #1c1c1e;
+}
+
+.section-heading.compact .eyebrow,
+.journey-section .eyebrow {
+  color: var(--apple-blue-light);
+}
+
+.timeline {
+  gap: 14px;
+}
+
+.timeline article {
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 24px;
+  background: rgba(44, 44, 46, .72);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .1);
+}
+
+.timeline-index {
+  color: rgba(235, 235, 245, .3);
+}
+
+.timeline-period {
+  color: var(--apple-blue-light);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  letter-spacing: .06em;
+}
+
+.timeline h3 {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+  font-weight: 650;
+  letter-spacing: -.035em;
+}
+
+.timeline p {
+  color: rgba(235, 235, 245, .7);
+}
+
+.timeline small {
+  color: rgba(235, 235, 245, .45);
+}
+
+.capabilities > div {
+  border-top-color: rgba(255, 255, 255, .1);
+}
+
+.capabilities span,
+.resume-extras article,
+.honor-item {
+  border-color: rgba(255, 255, 255, .1);
+}
+
+.capabilities span {
+  color: rgba(255, 255, 255, .86);
+}
+
+.capabilities i,
+.resume-extras article > span {
+  color: var(--apple-blue-light);
+}
+
+.resume-extras h3 {
+  font-weight: 620;
+}
+
+.resume-extras article p,
+.honor-item {
+  color: rgba(235, 235, 245, .62);
+}
+
+.about-section {
+  background: #f5f5f7;
+  color: #1d1d1f;
+}
+
+.about-copy > p:last-child {
+  color: #6e6e73;
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.about-orbit {
+  border-color: rgba(60, 60, 67, .09);
+  animation: none;
+  opacity: .5;
+}
+
+.about-orbit::before,
+.about-orbit::after {
+  border-color: rgba(60, 60, 67, .08);
+}
+
+.about-orbit span {
+  color: #8e8e93;
+}
+
+.contact-panel {
+  border: 1px solid rgba(0, 0, 0, .06);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, .78);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .08);
+  backdrop-filter: blur(26px) saturate(130%);
+  -webkit-backdrop-filter: blur(26px) saturate(130%);
+}
+
+.contact-panel h3 {
+  font-weight: 700;
+}
+
+.contact-actions a,
+.contact-actions button {
+  min-height: 54px;
+  border: 0;
+  border-radius: 16px;
+  background: #e9e9ee;
+  color: #1d1d1f;
+  font-weight: 560;
+}
+
+.contact-actions a:first-child {
+  background: var(--apple-blue);
+  color: #fff;
+  box-shadow: 0 10px 26px rgba(10, 132, 255, .2);
+}
+
+.contact-actions a:not(:first-child) {
+  background: #e9e9ee;
+  color: #1d1d1f;
+  box-shadow: none;
+}
+
+footer {
+  border-top-color: var(--apple-separator);
+  color: #6e6e73;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  letter-spacing: .035em;
+}
+
+/* Keep the editor aligned with the same system component language. */
+.admin-shell {
+  background: #1c1c1e;
+  color: #f5f5f7;
+}
+
+.admin-header {
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 24px;
+  background: rgba(44, 44, 46, .74);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, .18);
+  backdrop-filter: blur(30px) saturate(140%);
+  -webkit-backdrop-filter: blur(30px) saturate(140%);
+}
+
+.admin-header p {
+  color: var(--apple-blue-light);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+}
+
+.admin-header h1,
+.admin-section-title h2 {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+  font-weight: 680;
+}
+
+.admin-header-actions a,
+.admin-header-actions button,
+.admin-section-title > button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(118, 118, 128, .22);
+  color: rgba(255, 255, 255, .88);
+}
+
+.admin-header-actions button {
+  color: #fff;
+  background: var(--apple-blue);
+}
+
+.admin-section {
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 26px;
+  background: rgba(44, 44, 46, .64);
+}
+
+.admin-field input,
+.admin-field textarea {
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-radius: 13px;
+  background: rgba(28, 28, 30, .72);
+  color: #fff;
+}
+
+.admin-field input:focus,
+.admin-field textarea:focus {
+  border-color: var(--apple-blue);
+  box-shadow: 0 0 0 4px rgba(10, 132, 255, .14);
+}
+
+.admin-card {
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 20px;
+  background: rgba(28, 28, 30, .58);
+}
+
+@keyframes apple-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(.995);
+  }
+}
+
+@media (min-width: 821px) {
+  .hero-identity {
+    top: 15.2%;
+  }
+}
+
+@media (max-width: 820px) {
+  .glass-nav {
+    border-radius: 20px;
+  }
+
+  .hero-evidence {
+    border-radius: 24px;
+  }
+
+  .hero-dock {
+    border-radius: 24px;
+  }
+
+  .project-card,
+  .project-card.tone-2,
+  .project-card.tone-3 {
+    border-radius: 28px;
+  }
+}
+
+@media (max-width: 600px) {
+  .glass-nav {
+    padding-left: 18px;
+    border-radius: 19px;
+  }
+
+  .nav-links {
+    border: 1px solid rgba(255, 255, 255, .13);
+    border-radius: 20px;
+    background: rgba(28, 28, 30, .86);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, .22);
+    backdrop-filter: blur(30px) saturate(145%);
+    -webkit-backdrop-filter: blur(30px) saturate(145%);
+  }
+
+  .nav-links a {
+    min-height: 46px;
+  }
+
+  .hero-identity h1 {
+    font-size: 36px;
+  }
+
+  .hero-identity strong {
+    font-size: 12px;
+  }
+
+  .hero-evidence {
+    border-radius: 22px;
+  }
+
+  .wake-orb {
+    width: 136px;
+    height: 136px;
+  }
+
+  .orb-shell {
+    width: 98px;
+    height: 98px;
+  }
+
+  .central-chat,
+  .hero-dock {
+    border-radius: 20px;
+  }
+
+  .project-card,
+  .project-card.tone-2,
+  .project-card.tone-3 {
+    border-radius: 26px;
+  }
+
+  .project-signals span + span {
+    border-left: 0;
+    border-top-color: var(--apple-separator);
+  }
+
+  .timeline article {
+    border-radius: 22px;
+  }
+
+  .contact-panel {
+    border-radius: 26px;
+  }
+}
