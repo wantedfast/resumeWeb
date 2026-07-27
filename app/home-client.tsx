@@ -9,7 +9,7 @@ import {
   Hand,
   Mail,
   Menu,
-  Mic2,
+  Mic,
   Send,
   Sparkles,
   X,
@@ -294,11 +294,10 @@ export default function HomeClient({ initialProfile: PROFILE }: { initialProfile
 
         <aside className="hero-evidence" aria-label={t.proof}>
           <div className="evidence-heading">
-            <span>{t.proof}</span>
+            <span>{locale === "zh" ? "学术背景" : "ACADEMIC BACKGROUND"}</span>
             <i>{t.verified}</i>
           </div>
           <section className="evidence-education">
-            <span>01 · {t.educationProof}</span>
             <div>
               {PROFILE.education.map((item) => (
                 <article key={`${item.period}-${item.degree.en}`}>
@@ -312,12 +311,12 @@ export default function HomeClient({ initialProfile: PROFILE }: { initialProfile
             </div>
           </section>
           <article>
-            <span>02 · {t.paperProof}</span>
+            <span>{locale === "zh" ? "学术成果" : "SELECTED EVIDENCE"}</span>
             <strong>{publication.title}</strong>
             <p>{publication.venue}</p>
           </article>
           <article>
-            <span>03 · {t.honorsProof}</span>
+            <span>{locale === "zh" ? "奖学金与荣誉" : "SCHOLARSHIPS & HONORS"}</span>
             <strong>{PROFILE.honors[locale]?.slice(0, 2).join(" · ")}</strong>
             <p>{PROFILE.honors[locale]?.length ?? 0} {locale === "zh" ? "项已核实荣誉" : "verified recognitions"}</p>
           </article>
@@ -335,8 +334,8 @@ export default function HomeClient({ initialProfile: PROFILE }: { initialProfile
                     onClick={() => document.querySelector<HTMLInputElement>("#agent-question")?.focus()}
                   >
                     <span className="orb-shell">
-                      <img src={PROFILE.portrait} alt="" />
-                      <i><Mic2 strokeWidth={1.5} /></i>
+                      <Mic className="orb-mic" strokeWidth={1.35} aria-hidden="true" />
+                      <span className="orb-ready">AI READY</span>
                     </span>
                     <span className="orb-halo" />
                   </button>
