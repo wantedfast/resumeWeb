@@ -1,15 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { gsap } from "gsap";
 import {
-  ArrowDown,
   ArrowRight,
   ArrowUpRight,
+  CaretLeft,
+  CaretRight,
   DownloadSimple,
   EnvelopeSimple,
   GithubLogo,
   List,
   X,
 } from "@phosphor-icons/react";
+import { projects as projectCatalog, projectsBySlug } from "./data/projects.js";
+import {
+  experiences as experienceCatalog,
+  experiencesBySlug,
+} from "./data/experience.js";
+import { DigitalAssistant } from "./DigitalAssistant.jsx";
 
 const FRAME_COUNT = 362;
 const HERO_CAMERA_END = 0.88;
@@ -25,10 +32,10 @@ const heroChapters = [
       <>
         I build AI agents.
         <br />
-        I study how they work with us.
+        I study how they collaborate with humans.
       </>
     ),
-    body: "Ph.D. candidate at Doshisha University, working across agent systems, human–AI collaboration, and open-source engineering.",
+    body: "Ph.D. candidate at Doshisha University researching AI agent systems, Human–AI collaboration, and open-source engineering.",
   },
   {
     label: "THE QUESTION",
@@ -47,7 +54,7 @@ const heroChapters = [
     body: "That engineering foundation now shapes how I build and study collaborative AI systems.",
   },
   {
-    label: "PHD RESEARCH",
+    label: "PH.D. RESEARCH",
     frame: 117,
     align: "right",
     kicker: "COVS / HUMAN–AI TEAMWORK",
@@ -58,7 +65,7 @@ const heroChapters = [
         with partners they have never met?
       </>
     ),
-    body: "COVS is a Continuous-Space Overcooked Simulator for studying Human–AI teamwork and generalization to unseen partners.",
+    body: "COVS is a continuous-space Overcooked simulator for studying Human–AI teamwork and generalization to unseen partners.",
   },
   {
     label: "GLOBAL ENGINEERING",
@@ -67,12 +74,14 @@ const heroChapters = [
     kicker: "OPEN SOURCE / GLOBAL TEAMS",
     title: (
       <>
-        Engineering
+        Building Azure SDKs
         <br />
-        across borders.
+        with teams in China
+        <br />
+        and the United States.
       </>
     ),
-    body: "I have contributed to several Microsoft open-source projects and collaborated with global teams across China, the United States, and Japan.",
+    body: "I contributed to Microsoft open-source projects, including Azure Identity and Key Vault.",
   },
   {
     label: "SELECTED WORK",
@@ -86,7 +95,7 @@ const heroChapters = [
         to real products.
       </>
     ),
-    body: "COVS · Stock Ranking Model · AI Teaching Platform · Local Free-Item Exchange",
+    body: "COVS · Job Application Agent · Azure Identity",
     href: "#work",
     action: "EXPLORE PROJECTS",
   },
@@ -107,70 +116,10 @@ const heroChapters = [
   },
 ];
 
-const roles = ["AI ENGINEER", "AGENT RESEARCHER", "OPEN-SOURCE BUILDER"];
-
 const education = [
   ["2025—2028", "Doshisha University", "Ph.D. · Computer Science"],
   ["2023—2025", "Doshisha University", "M.Sc. · Computer Science"],
   ["2013—2017", "Shanghai Institute of Technology", "B.Sc. · Computer Science"],
-];
-
-const experience = [
-  {
-    period: "2017.01—2018.05",
-    company: "Döhler Shanghai",
-    role: "IT Engineer · APAC",
-    description:
-      "Maintained regional infrastructure and SAP/QAD business systems, supported APAC users under SLA requirements, and collaborated with international teams on system upgrades.",
-  },
-  {
-    period: "2018.06—2020.06",
-    company: "Wicresoft",
-    role: "Software Engineer · Azure SDK",
-    description:
-      "Worked with the U.S.-based Azure team on Azure Identity and Key Vault features in C#, including mock and end-to-end tests, samples, issue resolution, and developer documentation.",
-  },
-  {
-    period: "2020.06—2022.12",
-    company: "Independent Study",
-    role: "Computer Science",
-    description:
-      "Returned home during the pandemic to support family while continuing computer-science study and preparing for graduate school.",
-  },
-  {
-    period: "2022.12—2023.03",
-    company: "Dow Shanghai",
-    role: "IT Service Engineer",
-    description:
-      "Supported Microsoft Office, Windows, networks, and data-center infrastructure while handling incidents and service requests under SLA requirements.",
-  },
-];
-
-const projects = [
-  {
-    title: "COVS",
-    type: "Multi-agent research",
-    image: "/assets/project-covs.png",
-    href: "#publication",
-    copy:
-      "A continuous-action Overcooked simulator for human–AI coordination, diffusion-based behavior cloning, and generalization to unseen partners.",
-  },
-  {
-    title: "JOB APPLICATION AGENT",
-    type: "LLM agent system",
-    image: "/assets/project-job-agent.png",
-    href: "#contact",
-    copy:
-      "A multi-agent workflow for resume analysis, recruiter Q&A, and evaluating personalized cold outreach with the OpenAI SDK.",
-  },
-  {
-    title: "AZURE IDENTITY",
-    type: "Open-source engineering",
-    image: "/assets/project-azure.png",
-    href: "https://github.com/wantedfast/azure-sdk-for-net/tree/master/sdk/identity/Azure.Identity",
-    copy:
-      "Authentication components, tests, samples, and documentation merged into official Microsoft Azure repositories.",
-  },
 ];
 
 const awards = [
@@ -231,145 +180,10 @@ function useReveal() {
   }, []);
 }
 
-function ScrollSequenceHeroLegacy({ onOpenProfile, role }) {
-  const sectionRef = useRef(null);
-  const canvasRef = useRef(null);
-  const introRef = useRef(null);
-  const tailRef = useRef(null);
-  const progressRef = useRef(null);
-  const imagesRef = useRef([]);
-  const frameRef = useRef(0);
-
-  useEffect(() => {
-    let disposed = false;
-    const images = Array.from({ length: FRAME_COUNT }, () => new Image());
-    imagesRef.current = images;
-
-    function loadFrame(index) {
-      return new Promise((resolve) => {
-        const image = images[index];
-        image.onload = () => {
-          if (!disposed && index === frameRef.current) {
-            drawCover(canvasRef.current, image);
-          }
-          resolve();
-        };
-        image.onerror = resolve;
-        image.src = framePath(index);
-      });
-    }
-
-    loadFrame(0).then(() => {
-      if (!disposed) drawCover(canvasRef.current, images[0]);
-    });
-
-    const preload = () => {
-      for (let index = 1; index < FRAME_COUNT; index += 1) loadFrame(index);
-    };
-    const preloadId = window.setTimeout(preload, 60);
-
-    function updateHero() {
-      const section = sectionRef.current;
-      if (!section) return;
-
-      const rect = section.getBoundingClientRect();
-      const distance = Math.max(1, rect.height - window.innerHeight);
-      const progress = clamp(-rect.top / distance);
-      const frame = Math.min(FRAME_COUNT - 1, Math.round(progress * (FRAME_COUNT - 1)));
-
-      const image = images[frame];
-      if (frame !== frameRef.current || !canvasRef.current?.width) {
-        frameRef.current = frame;
-        if (image?.complete) drawCover(canvasRef.current, image);
-      }
-
-      if (introRef.current) {
-        const introOpacity = 1 - clamp(progress / 0.2);
-        introRef.current.style.opacity = String(introOpacity);
-        introRef.current.style.transform = `translate3d(0, ${progress * -44}px, 0)`;
-      }
-
-      if (tailRef.current) {
-        const tailProgress = clamp((progress - 0.84) / 0.13);
-        tailRef.current.style.opacity = String(tailProgress);
-        tailRef.current.style.transform = `translate3d(0, ${(1 - tailProgress) * 18}px, 0)`;
-        tailRef.current.style.pointerEvents = tailProgress > 0.8 ? "auto" : "none";
-      }
-
-      if (progressRef.current) {
-        progressRef.current.style.transform = `scaleX(${progress})`;
-      }
-    }
-
-    window.addEventListener("scroll", updateHero, { passive: true });
-    window.addEventListener("resize", updateHero);
-    updateHero();
-
-    return () => {
-      disposed = true;
-      window.removeEventListener("scroll", updateHero);
-      window.removeEventListener("resize", updateHero);
-      window.clearTimeout(preloadId);
-    };
-  }, []);
-
-  return (
-    <section className="hero-scroll" id="top" ref={sectionRef}>
-      <div className="hero-stage">
-        <canvas
-          className="hero-canvas"
-          ref={canvasRef}
-          aria-label="A cinematic camera move from Wang Xinlong to his laptop"
-        />
-        <div className="hero-shade" />
-
-        <div className="hero-intro" ref={introRef}>
-          <div className="hero-meta">
-            <span>AI ENGINEER · PHD CANDIDATE</span>
-            <span>KYOTO / SHANGHAI</span>
-          </div>
-          <div className="hero-copy">
-            <span className="hero-kicker">WANG XINLONG / PORTFOLIO 2026</span>
-            <h1>
-              Building agents
-              <br />
-              that work with us.
-            </h1>
-            <p>Engineering intelligent systems. Researching better partners.</p>
-          </div>
-        </div>
-
-        <div className="hero-tail" ref={tailRef}>
-          <span>THE SCREEN IS ONLY THE BEGINNING</span>
-          <strong>WANG XL</strong>
-          <button type="button" onClick={onOpenProfile}>
-            ABOUT ME <ArrowRight size={15} weight="bold" />
-          </button>
-        </div>
-
-        <div className="role-status" aria-live="polite">
-          <span>CURRENT MODE</span>
-          <strong key={role}>{role}</strong>
-        </div>
-        <div className="hero-scroll-note">
-          <span>SCROLL TO MOVE THE CAMERA</span>
-          <ArrowDown size={13} />
-        </div>
-        <div className="hero-progress">
-          <span ref={progressRef} />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ScrollSequenceHero({ onOpenProfile, role }) {
+function ScrollSequenceHero({ onOpenProfile }) {
   const sectionRef = useRef(null);
   const canvasRef = useRef(null);
   const chapterRefs = useRef([]);
-  const railRefs = useRef([]);
-  const sceneLabelRef = useRef(null);
-  const progressRef = useRef(null);
   const frameRef = useRef(0);
   const focusRef = useRef(0.5);
   const scrollTweenRef = useRef(null);
@@ -508,17 +322,6 @@ function ScrollSequenceHero({ onOpenProfile, role }) {
         node.toggleAttribute("inert", !isActive);
       });
 
-      railRefs.current.forEach((node, index) => {
-        node?.classList.toggle("is-active", index === activeIndex);
-        node?.classList.toggle("is-past", index < activeIndex);
-      });
-
-      if (sceneLabelRef.current) {
-        sceneLabelRef.current.textContent = heroChapters[activeIndex].label;
-      }
-      if (progressRef.current) {
-        progressRef.current.style.transform = `scaleX(${progress})`;
-      }
     }
 
     function getScrollProgress() {
@@ -613,31 +416,331 @@ function ScrollSequenceHero({ onOpenProfile, role }) {
           ))}
         </div>
 
-        <div className="role-status" aria-live="polite">
-          <span>CURRENT MODE</span>
-          <strong key={role}>{role}</strong>
-        </div>
-        <div className="hero-scene-rail" aria-hidden="true">
-          {heroChapters.map((chapter, index) => (
-            <span
-              className={index === 0 ? "is-active" : ""}
-              key={chapter.label}
-              ref={(node) => {
-                railRefs.current[index] = node;
-              }}
-            />
-          ))}
-        </div>
-        <div className="hero-scroll-note">
-          <span ref={sceneLabelRef}>IDENTITY</span>
-          <span>SCROLL · CINEMATIC SCRUB</span>
-          <ArrowDown size={13} />
-        </div>
-        <div className="hero-progress">
-          <span ref={progressRef} />
-        </div>
       </div>
     </section>
+  );
+}
+
+function createHorizontalLoop(elements, options = {}) {
+  const items = gsap.utils.toArray(elements);
+  const times = [];
+  const widths = [];
+  const xPercents = [];
+  const startX = items[0]?.offsetLeft ?? 0;
+  const pixelsPerSecond = (options.speed ?? 0.36) * 100;
+  const snap = gsap.utils.snap(options.snap ?? 1);
+  let currentIndex = 0;
+
+  const timeline = gsap.timeline({
+    repeat: options.repeat ?? -1,
+    paused: options.paused ?? false,
+    defaults: { ease: "none" },
+    onReverseComplete() {
+      timeline.totalTime(timeline.rawTime() + timeline.duration() * 100);
+    },
+  });
+
+  items.forEach((item, index) => {
+    widths[index] = Number.parseFloat(gsap.getProperty(item, "width", "px"));
+    xPercents[index] = snap(
+      (Number.parseFloat(gsap.getProperty(item, "x", "px")) / widths[index]) *
+        100 +
+        Number.parseFloat(gsap.getProperty(item, "xPercent")),
+    );
+  });
+
+  gsap.set(items, { xPercent: (index) => xPercents[index], x: 0 });
+
+  const lastItem = items.at(-1);
+  const totalWidth = lastItem
+    ? lastItem.offsetLeft +
+      (xPercents.at(-1) / 100) * widths.at(-1) -
+      startX +
+      lastItem.offsetWidth *
+        Number.parseFloat(gsap.getProperty(lastItem, "scaleX")) +
+      (options.paddingRight ?? 0)
+    : 0;
+
+  items.forEach((item, index) => {
+    const currentX = (xPercents[index] / 100) * widths[index];
+    const distanceToStart = item.offsetLeft + currentX - startX;
+    const distanceToLoop =
+      distanceToStart +
+      widths[index] * Number.parseFloat(gsap.getProperty(item, "scaleX"));
+
+    timeline
+      .to(
+        item,
+        {
+          xPercent: snap(
+            ((currentX - distanceToLoop) / widths[index]) * 100,
+          ),
+          duration: distanceToLoop / pixelsPerSecond,
+        },
+        0,
+      )
+      .fromTo(
+        item,
+        {
+          xPercent: snap(
+            ((currentX - distanceToLoop + totalWidth) / widths[index]) * 100,
+          ),
+        },
+        {
+          xPercent: xPercents[index],
+          duration:
+            (currentX - distanceToLoop + totalWidth - currentX) /
+            pixelsPerSecond,
+          immediateRender: false,
+        },
+        distanceToLoop / pixelsPerSecond,
+      )
+      .add(`project-${index}`, distanceToStart / pixelsPerSecond);
+
+    times[index] = distanceToStart / pixelsPerSecond;
+  });
+
+  function toIndex(index, vars = {}) {
+    const targetIndex = gsap.utils.wrap(0, items.length, index);
+    let targetTime = times[targetIndex];
+    if (
+      (targetTime > timeline.time()) !== (targetIndex > currentIndex) &&
+      Math.abs(targetIndex - currentIndex) > items.length / 2
+    ) {
+      targetTime +=
+        timeline.duration() * (targetIndex > currentIndex ? 1 : -1);
+    }
+    currentIndex = targetIndex;
+    const tweenVars = { overwrite: true, ...vars };
+    if (targetTime < 0 || targetTime > timeline.duration()) {
+      tweenVars.modifiers = {
+        time: gsap.utils.wrap(0, timeline.duration()),
+      };
+    }
+    return timeline.tweenTo(targetTime, tweenVars);
+  }
+
+  timeline.times = times;
+  timeline.toIndex = toIndex;
+  timeline.next = (vars) => toIndex(currentIndex + 1, vars);
+  timeline.previous = (vars) => toIndex(currentIndex - 1, vars);
+  timeline.current = () => currentIndex;
+  timeline.setCurrent = (index) => {
+    currentIndex = gsap.utils.wrap(0, items.length, index);
+  };
+  timeline.progress(1, true).progress(0, true);
+  return timeline;
+}
+
+function ProjectCarousel({ items, onAssistantIntro }) {
+  const trackRef = useRef(null);
+  const loopRef = useRef(null);
+  const pauseReasonsRef = useRef(new Set());
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const setPaused = useCallback((reason, paused) => {
+    if (paused) pauseReasonsRef.current.add(reason);
+    else pauseReasonsRef.current.delete(reason);
+    loopRef.current?.paused(pauseReasonsRef.current.size > 0);
+  }, []);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return undefined;
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (reducedMotion) {
+      track.classList.add("is-reduced-motion");
+      return () => track.classList.remove("is-reduced-motion");
+    }
+
+    let rebuildTimer;
+    let disposed = false;
+    const cards = Array.from(track.querySelectorAll(".project-card"));
+
+    function buildLoop() {
+      if (disposed || cards.length === 0) return;
+      const preservedIndex = loopRef.current?.current() ?? 0;
+      loopRef.current?.kill();
+      gsap.set(cards, { clearProps: "transform" });
+      const gap = Number.parseFloat(getComputedStyle(track).columnGap) || 0;
+      const loop = createHorizontalLoop(cards, {
+        speed: 0.36,
+        repeat: -1,
+        paddingRight: gap,
+      });
+      loopRef.current = loop;
+      loop.toIndex(preservedIndex, { duration: 0 });
+      loop.paused(pauseReasonsRef.current.size > 0);
+      loop.eventCallback("onUpdate", () => {
+        const duration = loop.duration();
+        const time = loop.time();
+        let closest = 0;
+        let smallestDistance = Number.POSITIVE_INFINITY;
+        loop.times.forEach((labelTime, index) => {
+          const directDistance = Math.abs(labelTime - time);
+          const wrappedDistance = Math.min(
+            directDistance,
+            Math.abs(duration - directDistance),
+          );
+          if (wrappedDistance < smallestDistance) {
+            smallestDistance = wrappedDistance;
+            closest = index;
+          }
+        });
+        loop.setCurrent(closest);
+        setActiveIndex((current) => (current === closest ? current : closest));
+      });
+    }
+
+    buildLoop();
+    const resizeObserver = new ResizeObserver(() => {
+      window.clearTimeout(rebuildTimer);
+      rebuildTimer = window.setTimeout(buildLoop, 140);
+    });
+    resizeObserver.observe(track);
+
+    function handleVisibilityChange() {
+      setPaused("visibility", document.hidden);
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      disposed = true;
+      window.clearTimeout(rebuildTimer);
+      resizeObserver.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      loopRef.current?.kill();
+      loopRef.current = null;
+      gsap.set(cards, { clearProps: "transform" });
+    };
+  }, [items.length, setPaused]);
+
+  function moveToProject(direction) {
+    const loop = loopRef.current;
+    if (!loop) {
+      const targetIndex = gsap.utils.wrap(
+        0,
+        items.length,
+        activeIndex + direction,
+      );
+      trackRef.current?.children[targetIndex]?.scrollIntoView({
+        behavior: "auto",
+        block: "nearest",
+        inline: "start",
+      });
+      setActiveIndex(targetIndex);
+      return;
+    }
+    loop.pause();
+    loop.toIndex(activeIndex + direction, {
+      duration: 0.65,
+      ease: "power2.inOut",
+      onComplete: () => {
+        setActiveIndex(loop.current());
+        loop.paused(pauseReasonsRef.current.size > 0);
+      },
+    });
+  }
+
+  function handleTrackKeyDown(event) {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    event.preventDefault();
+    moveToProject(event.key === "ArrowRight" ? 1 : -1);
+  }
+
+  function updateSpotlight(event) {
+    const card = event.currentTarget;
+    const bounds = card.getBoundingClientRect();
+    card.style.setProperty("--spot-x", `${event.clientX - bounds.left}px`);
+    card.style.setProperty("--spot-y", `${event.clientY - bounds.top}px`);
+  }
+
+  return (
+    <div className="project-carousel">
+      <div className="project-carousel__controls" data-reveal>
+        <span aria-live="polite">
+          {String(activeIndex + 1).padStart(2, "0")} /{" "}
+          {String(items.length).padStart(2, "0")}
+        </span>
+        <div>
+          <button
+            type="button"
+            aria-label="Show previous project"
+            onClick={() => moveToProject(-1)}
+          >
+            <CaretLeft size={19} weight="bold" />
+          </button>
+          <button
+            type="button"
+            aria-label="Show next project"
+            onClick={() => moveToProject(1)}
+          >
+            <CaretRight size={19} weight="bold" />
+          </button>
+        </div>
+      </div>
+      <div
+        className="project-track"
+        ref={trackRef}
+        role="region"
+        aria-label="Selected projects"
+        tabIndex={0}
+        onKeyDown={handleTrackKeyDown}
+        onPointerEnter={() => setPaused("hover", true)}
+        onPointerLeave={() => setPaused("hover", false)}
+        onFocusCapture={() => setPaused("focus", true)}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) {
+            setPaused("focus", false);
+          }
+        }}
+      >
+        {items.map((project) => (
+          <article className="project-card" key={project.slug}>
+            <a
+              className="project-card__link"
+              href={`/projects/${project.slug}`}
+              aria-label={`View the ${project.title} project`}
+              onPointerMove={updateSpotlight}
+              onPointerEnter={(event) => {
+                event.currentTarget.classList.add("is-previewed");
+                onAssistantIntro?.(project.assistantIntro);
+              }}
+              onPointerLeave={(event) => {
+                event.currentTarget.classList.remove("is-previewed");
+                onAssistantIntro?.("");
+              }}
+              onFocus={() => onAssistantIntro?.(project.assistantIntro)}
+              onBlur={() => onAssistantIntro?.("")}
+            >
+              <div className="project-image">
+                <img
+                  src={project.image}
+                  alt={project.imageAlt}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div className="project-card__glare" aria-hidden="true" />
+                <div className="project-card__preview">
+                  <span>{project.type}</span>
+                  <p>{project.summary}</p>
+                  <strong>
+                    View project <ArrowUpRight size={15} weight="bold" />
+                  </strong>
+                </div>
+              </div>
+              <div className="project-meta">
+                <span>{project.type}</span>
+                <ArrowUpRight size={20} weight="bold" aria-hidden="true" />
+              </div>
+              <h3>{project.title}</h3>
+            </a>
+          </article>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -804,7 +907,7 @@ function LanyardProfile({ open, onClose }) {
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
     >
-      <button className="profile-backdrop" type="button" onClick={onClose} aria-label="Close profile card" />
+      <button className="profile-backdrop" type="button" onClick={onClose} aria-label="Dismiss profile card" />
       <button className="profile-close" type="button" onClick={onClose} aria-label="Close profile card">
         <X size={22} />
       </button>
@@ -866,20 +969,11 @@ function LanyardProfile({ open, onClose }) {
   );
 }
 
-function App() {
-  const [roleIndex, setRoleIndex] = useState(0);
+function PortfolioHome({ onAssistantIntro }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const closeProfile = useCallback(() => setProfileOpen(false), []);
   useReveal();
-
-  useEffect(() => {
-    const timer = window.setInterval(
-      () => setRoleIndex((value) => (value + 1) % roles.length),
-      2200,
-    );
-    return () => window.clearInterval(timer);
-  }, []);
 
   const year = useMemo(() => new Date().getFullYear(), []);
 
@@ -897,8 +991,8 @@ function App() {
     <main>
       <header className="site-header">
         <a className="wordmark" href="#top" onClick={closeMenu}>
-          <span>王新龙</span>
-          <small>WANG XINLONG — 2026</small>
+          <span>WANG XL</span>
+          <small>PORTFOLIO — 2026</small>
         </a>
         <nav className={menuOpen ? "nav is-open" : "nav"} aria-label="Primary">
           <a href="#about" onClick={openProfile}>ABOUT ME</a>
@@ -921,19 +1015,13 @@ function App() {
         </button>
       </header>
 
-      <ScrollSequenceHero
-        onOpenProfile={() => setProfileOpen(true)}
-        role={roles[roleIndex]}
-      />
+      <ScrollSequenceHero onOpenProfile={() => setProfileOpen(true)} />
 
       <section className="manifesto section-pad">
-        <span className="section-index" data-reveal>POSITION</span>
         <p data-reveal>
-          I build systems that can reason.
+          I build AI agents that plan, coordinate, and act.
           <br />
-          I research how they coordinate.
-          <br />
-          <em>Both begin with people.</em>
+          <em>I use AI to help people in their daily lives.</em>
         </p>
       </section>
 
@@ -944,23 +1032,28 @@ function App() {
         </div>
         <div className="about-grid">
           <div className="about-portrait" data-reveal>
-            <img src="/assets/wang-xinlong-portrait.png" alt="Portrait of Wang Xinlong" />
+            <div className="about-portrait__card-photo">
+              <img
+                src="/assets/wang-xinlong-portrait-selected.png"
+                alt="Portrait of Wang Xinlong"
+              />
+            </div>
             <div>
               <span>WANG XINLONG</span>
               <span>AI ENGINEER · RESEARCHER</span>
             </div>
           </div>
           <div className="about-statement" data-reveal>
-            <h2>Engineering intelligence. Researching collaboration.</h2>
+            <h2>Building intelligent systems. Studying Human–AI collaboration.</h2>
             <p>
-              AI Engineer and Ph.D. candidate in Computer Science focused on
-              LLM-based agents, human–AI collaboration, and multi-agent
+              AI engineer and Ph.D. candidate in computer science focused on
+              LLM agents, Human–AI collaboration, and multi-agent
               reinforcement learning.
             </p>
             <p>
-              Eight years of experience connect software engineering, cloud
+              Eight years of experience across software engineering, cloud
               infrastructure, Azure SDK development, authentication, and
-              international technical environments.
+              international technical teams inform this research.
             </p>
           </div>
         </div>
@@ -977,24 +1070,36 @@ function App() {
 
       <section className="experience section-pad" id="experience">
         <div className="section-label" data-reveal>
-          <span>EXPERIENCE / 08+ YEARS</span>
+          <span>WORK EXPERIENCE / 08+ YEARS</span>
           <span>SHANGHAI · APAC · KYOTO</span>
         </div>
         <div className="experience-heading">
-          <span className="section-index" data-reveal>JOURNEY</span>
-          <h2 data-reveal>Systems before agents.</h2>
+          <h2 data-reveal>Work experience</h2>
         </div>
         <div className="experience-list">
-          {experience.map((item, index) => (
-            <article className="experience-row" key={item.period} data-reveal>
+          {experienceCatalog.map((item, index) => (
+            <a
+              className="experience-row"
+              href={`/experience/${item.slug}`}
+              key={item.slug}
+              data-reveal
+              aria-label={`View details for ${item.role} at ${item.company}`}
+              onPointerEnter={() => onAssistantIntro?.(item.assistantIntro)}
+              onPointerLeave={() => onAssistantIntro?.("")}
+              onFocus={() => onAssistantIntro?.(item.assistantIntro)}
+              onBlur={() => onAssistantIntro?.("")}
+            >
               <span>{String(index + 1).padStart(2, "0")}</span>
               <span>{item.period}</span>
-              <div>
+              <div className="experience-row__role">
                 <h3>{item.company}</h3>
                 <strong>{item.role}</strong>
+                <span className="experience-row__action">
+                  VIEW DETAILS <ArrowUpRight size={14} weight="bold" />
+                </span>
               </div>
               <p>{item.description}</p>
-            </article>
+            </a>
           ))}
         </div>
       </section>
@@ -1010,9 +1115,9 @@ function App() {
             <h2>NOW</h2>
           </div>
           <p data-reveal>
-            Designing continuous-space coordination environments, diffusion
-            behavior cloning, and VLA approaches for unseen partners and new
-            cooperative tasks.
+            Researching Human–AI collaboration with world models, focusing on
+            how AI agents infer human cooperative intent from actions and
+            interaction dynamics.
           </p>
         </div>
       </section>
@@ -1023,42 +1128,38 @@ function App() {
           <span>RESEARCH + ENGINEERING</span>
         </div>
         <div className="work-heading">
-          <span className="section-index" data-reveal>SYSTEMS</span>
-          <h2 data-reveal>Selected work.</h2>
+          <h2 data-reveal>Selected work</h2>
         </div>
-        <div className="project-list">
-          {projects.map((project) => (
-            <article className="project" key={project.title} data-reveal>
-              <a
-                href={project.href}
-                target={project.href.startsWith("http") ? "_blank" : undefined}
-                rel={project.href.startsWith("http") ? "noreferrer" : undefined}
-              >
-                <div className="project-image">
-                  <img src={project.image} alt="" />
-                </div>
-                <div className="project-meta">
-                  <span>{project.type}</span>
-                  <ArrowUpRight size={20} weight="bold" />
-                </div>
-                <h3>{project.title}</h3>
-                <p>{project.copy}</p>
-              </a>
-            </article>
-          ))}
-        </div>
+        <ProjectCarousel
+          items={projectCatalog}
+          onAssistantIntro={onAssistantIntro}
+        />
       </section>
 
       <section className="recognition section-pad" id="publication">
         <div className="section-label" data-reveal>
-          <span>PUBLICATION + RECOGNITION</span>
-          <span>SELECTED</span>
+          <span>RESEARCH OUTPUT</span>
+          <span>2026</span>
         </div>
+        <h2 className="publication-heading" data-reveal>PUBLICATIONS</h2>
         <article className="publication" data-reveal>
-          <span>ACCEPTED · ABC 2026 CONFERENCE</span>
-          <h2>A Continuous-Space Overcooked Simulator for Multi-Agent Coordination.</h2>
-          <p>Wang Xinlong, et al.</p>
+          <span className="publication-number">01</span>
+          <div className="publication-copy">
+            <span>PUBLISHED · IJABC · 2026</span>
+            <h3>A Continuous-Space Overcooked Simulator for Multi-Agent Coordination</h3>
+            <p>Xinlong Wang · Kota Toyoda · Miho Ohsaki · Kimiaki Shirahama</p>
+            <p>International Journal of Activity and Behavior Computing</p>
+          </div>
+          <a
+            className="publication-link"
+            href="https://www.jstage.jst.go.jp/article/ijabc/2026/1/2026_144/_pdf/-char/ja"
+            target="_blank"
+            rel="noreferrer"
+          >
+            VIEW PAPER <ArrowUpRight size={14} weight="bold" />
+          </a>
         </article>
+        <h2 className="recognition-heading" data-reveal>RECOGNITION</h2>
         <div className="awards">
           {awards.map((award, index) => (
             <div key={award} data-reveal>
@@ -1083,7 +1184,7 @@ function App() {
         </div>
         <div className="footer-grid">
           <div className="footer-brand">
-            <span>王新龙</span>
+            <span>WANG XL</span>
             <small>AI ENGINEER · RESEARCHER</small>
           </div>
           <div>
@@ -1116,6 +1217,358 @@ function App() {
 
       <LanyardProfile open={profileOpen} onClose={closeProfile} />
     </main>
+  );
+}
+
+function ExperienceDetailPage({ experience }) {
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = `${experience.role} at ${experience.company} / Wang Xinlong`;
+    window.scrollTo(0, 0);
+    return () => {
+      document.title = previousTitle;
+    };
+  }, [experience]);
+
+  return (
+    <main className="project-page experience-page">
+      <header className="project-page__header">
+        <a className="wordmark" href="/">
+          <span>WANG XL</span>
+          <small>EXPERIENCE INDEX</small>
+        </a>
+        <a className="project-page__back" href="/#experience">
+          <CaretLeft size={16} weight="bold" />
+          BACK TO WORK EXPERIENCE
+        </a>
+      </header>
+
+      <div className="project-page__layout">
+        <aside className="project-page__sidebar">
+          <div className="project-page__sidebar-intro">
+            <span>WORK EXPERIENCE</span>
+            <strong>{experience.period}</strong>
+          </div>
+          <nav aria-label="Work experience index">
+            {experienceCatalog.map((item, index) => (
+              <a
+                className={item.slug === experience.slug ? "is-active" : ""}
+                href={`/experience/${item.slug}`}
+                aria-current={
+                  item.slug === experience.slug ? "page" : undefined
+                }
+                key={item.slug}
+              >
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <strong>{item.company}</strong>
+              </a>
+            ))}
+          </nav>
+        </aside>
+
+        <article className="project-page__content">
+          <header className="project-page__intro">
+            <div className="project-page__eyebrow">
+              <span>{experience.role}</span>
+              <span>{experience.period}</span>
+            </div>
+            <h1>{experience.company}</h1>
+            <p>{experience.description}</p>
+          </header>
+
+          <section className="project-page__section project-page__section--lead">
+            <span>CONTEXT</span>
+            <p>{experience.context}</p>
+          </section>
+
+          <div className="project-page__split">
+            <section className="project-page__section">
+              <span>WHAT I DID</span>
+              <ul className="project-page__list">
+                {experience.responsibilities.map((responsibility) => (
+                  <li key={responsibility}>{responsibility}</li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="project-page__section">
+              <span>CONTRIBUTION</span>
+              <ul className="project-page__list">
+                {experience.contributions.map((contribution) => (
+                  <li key={contribution}>{contribution}</li>
+                ))}
+              </ul>
+            </section>
+          </div>
+
+          <section className="project-page__section">
+            <span>WORKING ENVIRONMENT</span>
+            <div className="project-page__tags">
+              {experience.stack.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
+            </div>
+          </section>
+
+          <footer className="project-page__footer">
+            <div>
+              <span>ROLE</span>
+              <strong>{experience.role}</strong>
+            </div>
+            <div className="experience-page__meta">
+              <span>LOCATION</span>
+              <strong>{experience.location}</strong>
+            </div>
+          </footer>
+        </article>
+      </div>
+    </main>
+  );
+}
+
+function ProjectDetailPage({ project }) {
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = `${project.title} / Wang Xinlong`;
+    window.scrollTo(0, 0);
+    return () => {
+      document.title = previousTitle;
+    };
+  }, [project]);
+
+  return (
+    <main className="project-page">
+      <header className="project-page__header">
+        <a className="wordmark" href="/">
+          <span>WANG XL</span>
+          <small>PROJECT INDEX</small>
+        </a>
+        <a className="project-page__back" href="/#work">
+          <CaretLeft size={16} weight="bold" />
+          BACK TO SELECTED WORK
+        </a>
+      </header>
+
+      <div className="project-page__layout">
+        <aside className="project-page__sidebar">
+          <div className="project-page__sidebar-intro">
+            <span>SELECTED WORK</span>
+            <strong>{project.status}</strong>
+          </div>
+          <nav aria-label="Project index">
+            {projectCatalog.map((item, index) => (
+              <a
+                className={item.slug === project.slug ? "is-active" : ""}
+                href={`/projects/${item.slug}`}
+                aria-current={item.slug === project.slug ? "page" : undefined}
+                key={item.slug}
+              >
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <strong>{item.title}</strong>
+              </a>
+            ))}
+          </nav>
+        </aside>
+
+        <article className="project-page__content">
+          <header className="project-page__intro">
+            <div className="project-page__eyebrow">
+              <span>{project.type}</span>
+              <span>{project.status}</span>
+            </div>
+            <h1>{project.title}</h1>
+            <p>{project.summary}</p>
+          </header>
+
+          <section className="project-page__section project-page__section--lead">
+            <span>CONTEXT</span>
+            <p>{project.context}</p>
+          </section>
+
+          <section className="project-page__section project-page__section--lead">
+            <span>THE PROBLEM</span>
+            <p>{project.problem}</p>
+          </section>
+
+          <section className="project-page__section">
+            <span>WORKFLOW</span>
+            <ol className="project-page__workflow">
+              {project.workflow.map((step, index) => (
+                <li key={step.title}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <div>
+                    <h2>{step.title}</h2>
+                    <p>{step.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <div className="project-page__split">
+            <section className="project-page__section">
+              <span>CORE CAPABILITIES</span>
+              <ul className="project-page__list">
+                {project.features.map((feature) => (
+                  <li key={feature}>{feature}</li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="project-page__section">
+              <span>MY CONTRIBUTION</span>
+              <ul className="project-page__list">
+                {project.contribution.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </section>
+          </div>
+
+          <section className="project-page__section">
+            <span>TECHNICAL DECISIONS</span>
+            <div className="project-page__decisions">
+              {project.technicalDecisions.map((decision, index) => (
+                <article key={decision.title}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <h2>{decision.title}</h2>
+                  <p>{decision.body}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <div className="project-page__split project-page__split--footer">
+            <section className="project-page__section">
+              <span>TECHNOLOGY</span>
+              <div className="project-page__tags">
+                {project.stack.map((item) => (
+                  <span key={item}>{item}</span>
+                ))}
+              </div>
+            </section>
+
+            <section className="project-page__section">
+              <span>CURRENT LIMITS</span>
+              <ul className="project-page__list">
+                {project.limitations.map((limitation) => (
+                  <li key={limitation}>{limitation}</li>
+                ))}
+              </ul>
+            </section>
+          </div>
+
+          <footer className="project-page__footer">
+            <div>
+              <span>PROJECT STATUS</span>
+              <strong>{project.status}</strong>
+            </div>
+            {project.links.length > 0 && (
+              <div className="project-page__links">
+                {project.links.map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {link.label} <ArrowUpRight size={16} weight="bold" />
+                  </a>
+                ))}
+              </div>
+            )}
+          </footer>
+        </article>
+      </div>
+    </main>
+  );
+}
+
+function ProjectNotFound() {
+  return (
+    <main className="project-not-found">
+      <span>404 / PROJECT NOT FOUND</span>
+      <h1>This project is not in the selected work index.</h1>
+      <a href="/#work">
+        <CaretLeft size={16} weight="bold" />
+        RETURN TO SELECTED WORK
+      </a>
+    </main>
+  );
+}
+
+function ExperienceNotFound() {
+  return (
+    <main className="project-not-found">
+      <span>404 / EXPERIENCE NOT FOUND</span>
+      <h1>This role is not in the work experience index.</h1>
+      <a href="/#experience">
+        <CaretLeft size={16} weight="bold" />
+        RETURN TO WORK EXPERIENCE
+      </a>
+    </main>
+  );
+}
+
+function App() {
+  const [assistantIntro, setAssistantIntro] = useState("");
+  let pageContent;
+  let pageContext = { kind: "home", slug: null };
+
+  const projectMatch = window.location.pathname.match(
+    /^\/projects\/([^/]+)\/?$/,
+  );
+  if (projectMatch) {
+    let projectSlug;
+    try {
+      projectSlug = decodeURIComponent(projectMatch[1]);
+    } catch {
+      pageContent = <ProjectNotFound />;
+    }
+    if (!pageContent) {
+      const project = projectsBySlug[projectSlug];
+      pageContext = { kind: "project", slug: projectSlug };
+      pageContent = project ? (
+        <ProjectDetailPage project={project} />
+      ) : (
+        <ProjectNotFound />
+      );
+    }
+  }
+
+  const experienceMatch = window.location.pathname.match(
+    /^\/experience\/([^/]+)\/?$/,
+  );
+  if (!pageContent && experienceMatch) {
+    let experienceSlug;
+    try {
+      experienceSlug = decodeURIComponent(experienceMatch[1]);
+    } catch {
+      pageContent = <ExperienceNotFound />;
+    }
+    if (!pageContent) {
+      const experience = experiencesBySlug[experienceSlug];
+      pageContext = { kind: "experience", slug: experienceSlug };
+      pageContent = experience ? (
+        <ExperienceDetailPage experience={experience} />
+      ) : (
+        <ExperienceNotFound />
+      );
+    }
+  }
+
+  if (!pageContent) {
+    pageContent = <PortfolioHome onAssistantIntro={setAssistantIntro} />;
+  }
+
+  return (
+    <>
+      {pageContent}
+      <DigitalAssistant
+        hoverIntro={assistantIntro}
+        pageContext={pageContext}
+      />
+    </>
   );
 }
 

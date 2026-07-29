@@ -86,6 +86,62 @@ final result: passed
 
 ---
 
+# Portfolio Work Index and Project Detail QA
+
+## Evidence
+
+- Source visual truth:
+  - `C:\Users\wangf\AppData\Local\Temp\codex-clipboard-7009b16b-f143-4e06-a3c3-e4632b3b1b46.png`
+  - `C:\Users\wangf\AppData\Local\Temp\codex-clipboard-5fd768ec-9a9a-4660-baa9-581c3bdac4bf.png`
+  - `C:\Users\wangf\Documents\王欣隆简历\audit\design-qa-v2\employee-card-portrait-reference-clean.png`
+- Browser-rendered implementation:
+  - `C:\Users\wangf\Documents\王欣隆简历\audit\design-qa-v2\implementation-selected-work.png`
+  - `C:\Users\wangf\Documents\王欣隆简历\audit\design-qa-v2\implementation-work-experience.png`
+  - `C:\Users\wangf\Documents\王欣隆简历\audit\design-qa-v2\implementation-about-portrait-final.png`
+  - `C:\Users\wangf\Documents\王欣隆简历\audit\design-qa-v2\implementation-project-detail.png`
+- Combined comparisons:
+  - `C:\Users\wangf\Documents\王欣隆简历\audit\design-qa-v2\comparison-selected-work.png`
+  - `C:\Users\wangf\Documents\王欣隆简历\audit\design-qa-v2\comparison-work-experience.png`
+  - `C:\Users\wangf\Documents\王欣隆简历\audit\design-qa-v2\comparison-portrait.png`
+- Browser viewport: 1280 x 720 CSS pixels. Browser screenshots are 1264 x 720 pixels because the visible vertical scrollbar occupies the remaining width. Device density is 1.
+- Source pixels: Selected Work 1759 x 703; Work Experience 1718 x 344; portrait reference 155 x 387. Final portrait asset is 1122 x 1402 and renders at an effective 4:5 ratio.
+- State: centered headings, automatic carousel, manual next control, About portrait, AI-KANOJO detail route, all seven direct project routes, unknown route, and return navigation.
+
+## Required Fidelity Surfaces
+
+- Fonts and typography: the existing Archivo and IBM Plex Mono system is preserved. `Work experience` and `Selected work` use the same computed 121.6px size, 104.576px line height, -8.7552px letter spacing, and centered alignment at the QA viewport. The requested kickers and periods are absent.
+- Spacing and layout rhythm: both section headings use the same centered spacing system. The work viewport retains approximately three visible cards, a compact counter, and right-aligned controls. Detail pages use a fixed left project index and a wide editorial reading column.
+- Colors and visual tokens: the existing warm black, burgundy, paper, and beige tokens remain consistent. The project detail surface uses the site's established warm beige rather than introducing a new palette.
+- Image quality and asset fidelity: the final portrait is a true generated outpaint from the employee-card portrait reference, with centered framing, black shirt, beige background, no card border, and no text. Existing project covers remain real raster assets; project detail pages do not introduce fake screenshots.
+- Copy and content: seven projects have distinct context, problem, workflow, capabilities, technical decisions, contribution, limitations, status, stack, and links. AI Trading Helper explicitly avoids investment-advice or return claims. No under-review publication was added.
+
+## Interaction and Runtime Checks
+
+- The card transforms moved approximately 44 pixels left over 1.2 seconds, matching the intended 36px/s automatic motion without wheel or vertical-scroll input.
+- The next button advances from the currently visible project and the loop resumes automatically after the transition.
+- Hover/focus selectors expose the glare and summary layer; pointer position updates the spotlight coordinates. Reduced-motion disables continuous looping and the glare while retaining the horizontal list and controls.
+- All seven `/projects/:slug` routes were opened directly. Each rendered eight content sections and the correct active left-sidebar entry.
+- `BACK TO SELECTED WORK` returned to `/#work`. An unknown project slug rendered the dedicated project-not-found state.
+- Browser logs contained Vite connection messages and the React development notice only; no application errors were observed.
+- `npm run build` and `git diff --check` pass.
+
+## Comparison History
+
+1. P2: the first manual-next implementation used a stale loop index after autoplay and could jump from the visible fourth card to the second card.
+   - Fix: the loop now synchronizes its current index to the nearest timeline label on every update, and arrows target the current visual index.
+   - Post-fix evidence: browser retest advanced `01 / 07` to `02 / 07`, then confirmed the transforms continued changing after the transition.
+2. P2: the first outpaint used the full employee-card image as reference and drifted farther from the embedded portrait.
+   - Fix: isolated the employee-card portrait as a reference-only crop and regenerated the 4:5 outpaint with explicit identity invariants.
+   - Post-fix evidence: `comparison-portrait.png` and `implementation-about-portrait-final.png`.
+
+## Residual Polish
+
+- The continuous carousel and card effects are tuned for desktop, as requested. Narrow layouts remain accessible and avoid page-level overflow but were not treated as a separate mobile art direction.
+
+final result: passed
+
+---
+
 # Burgundy Lanyard and Site Palette QA
 
 ## Evidence
