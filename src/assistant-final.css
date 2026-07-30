@@ -1,0 +1,577 @@
+/* Final assistant design: 8-bit wake state + persistent cinematic sidecar. */
+.digital-assistant {
+  --assistant-sleep-frame-width: clamp(154px, 12vw, 178px);
+  --assistant-sleep-frame-height: clamp(166px, 14vw, 194px);
+  --assistant-sleep-image-size: clamp(132px, 10.2vw, 152px);
+  --assistant-sleep-image-half: clamp(66px, 5.1vw, 76px);
+  position: fixed;
+  z-index: 90;
+  inset: clamp(104px, 14vh, 144px) clamp(18px, 1.6vw, 26px) auto auto;
+  width: 48px;
+  height: 48px;
+  pointer-events: none;
+  opacity: 1;
+  transform: none;
+}
+
+.digital-assistant.is-dormant-pixel {
+  inset: clamp(108px, 14vh, 136px) clamp(18px, 2vw, 30px) auto auto;
+  width: var(--assistant-sleep-frame-width);
+  height: var(--assistant-sleep-frame-height);
+}
+
+.digital-assistant.is-hero-card,
+.digital-assistant.is-context-card {
+  inset: clamp(104px, 14vh, 144px) clamp(18px, 1.6vw, 26px) auto auto;
+  width: clamp(214px, 14.1vw, 236px);
+  height: min(650px, calc(100svh - 174px));
+}
+
+.digital-assistant.is-chat-open {
+  inset: auto clamp(14px, 2.2vw, 34px) 18px auto;
+  width: min(438px, calc(100vw - 28px));
+  height: min(720px, calc(100svh - 36px));
+}
+
+.assistant-dormant {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--paper);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.assistant-dormant::before {
+  position: absolute;
+  z-index: -1;
+  top: 12px;
+  left: 50%;
+  width: 142px;
+  height: 142px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(126, 32, 39, 0.34) 0,
+    rgba(97, 24, 30, 0.18) 42%,
+    transparent 72%
+  );
+  content: "";
+  transform: translateX(-50%);
+  animation: assistant-sleep-glow 2.8s ease-in-out infinite;
+}
+
+.assistant-dormant img {
+  display: block;
+  width: var(--assistant-sleep-image-size);
+  height: auto;
+  image-rendering: pixelated;
+  filter:
+    drop-shadow(0 12px 16px rgba(0, 0, 0, 0.68))
+    drop-shadow(0 0 12px rgba(113, 31, 37, 0.18));
+  transform-origin: 50% 100%;
+  animation: assistant-pixel-sleep 2.4s steps(2, end) infinite;
+}
+
+.assistant-dormant__identity {
+  display: flex;
+  min-width: 150px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 9px 6px;
+  border-block: 1px solid rgba(154, 55, 61, 0.45);
+  background: rgba(22, 10, 12, 0.72);
+  color: rgba(244, 235, 225, 0.9);
+  font-family: "IBM Plex Mono", monospace;
+  text-align: left;
+  text-shadow: 0 2px 7px #000;
+  backdrop-filter: blur(8px);
+}
+
+.assistant-dormant__identity > svg {
+  flex: 0 0 auto;
+  color: #c5575f;
+}
+
+.assistant-dormant__identity > span {
+  display: grid;
+  gap: 3px;
+}
+
+.assistant-dormant__identity strong,
+.assistant-dormant__identity small {
+  font-size: 7px;
+  letter-spacing: 0.09em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.assistant-dormant__identity strong {
+  color: var(--paper);
+  font-weight: 500;
+}
+
+.assistant-dormant__identity small {
+  color: rgba(244, 235, 225, 0.56);
+}
+
+.assistant-dormant:hover .assistant-dormant__identity,
+.assistant-dormant:focus-visible .assistant-dormant__identity {
+  border-color: rgba(219, 114, 120, 0.7);
+  background: rgba(65, 20, 24, 0.82);
+}
+
+.assistant-dormant:focus-visible {
+  outline: 1px solid rgba(239, 228, 214, 0.7);
+  outline-offset: 4px;
+}
+
+.digital-assistant .assistant-sidecar {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(239, 228, 214, 0.3);
+  background:
+    linear-gradient(180deg, rgba(35, 15, 18, 0.96), rgba(20, 10, 12, 0.98)),
+    #180d0f;
+  color: var(--paper);
+  box-shadow: 0 26px 74px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+  backdrop-filter: blur(16px);
+  animation: assistant-sidecar-final-in 360ms
+    cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.digital-assistant .assistant-sidecar::before {
+  position: absolute;
+  z-index: 4;
+  inset: 7px 6px 7px auto;
+  width: 5px;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(126, 50, 53, 0.52) 0 7px,
+    transparent 7px 15px
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.digital-assistant .assistant-sidecar::after {
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(239, 228, 214, 0.09);
+  content: "";
+  pointer-events: none;
+}
+
+.digital-assistant .assistant-sidecar > header {
+  display: grid;
+  gap: 4px;
+  flex: 0 0 auto;
+  padding: 18px 22px 12px;
+  color: rgba(239, 228, 214, 0.92);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.09em;
+  line-height: 1.22;
+}
+
+.digital-assistant .assistant-language-switch {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  padding: 0 14px 10px;
+}
+
+.digital-assistant .assistant-language-switch button {
+  min-width: 0;
+  flex: 1;
+  padding: 6px 4px;
+  border: 1px solid rgba(239, 228, 214, 0.16);
+  background: rgba(11, 7, 7, 0.36);
+  color: rgba(239, 228, 214, 0.58);
+  font-family: "IBM Plex Mono", "Microsoft YaHei", monospace;
+  font-size: 7px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.digital-assistant .assistant-language-switch button:hover,
+.digital-assistant .assistant-language-switch button:focus-visible,
+.digital-assistant .assistant-language-switch button.is-active {
+  border-color: rgba(206, 94, 101, 0.72);
+  background: rgba(88, 23, 25, 0.82);
+  color: var(--paper);
+  outline: none;
+}
+
+.digital-assistant .assistant-panel > .assistant-language-switch {
+  padding: 9px 18px;
+  border-bottom: 1px solid rgba(239, 228, 214, 0.12);
+  background: rgba(11, 7, 7, 0.38);
+}
+
+.digital-assistant .assistant-sidecar__portrait {
+  position: relative;
+  flex: 1 1 300px;
+  min-height: 210px;
+  overflow: hidden;
+  border-block: 1px solid rgba(239, 228, 214, 0.1);
+  background:
+    radial-gradient(circle at 50% 28%, rgba(100, 37, 43, 0.2), transparent 55%),
+    rgba(9, 7, 8, 0.42);
+}
+
+.digital-assistant .assistant-sidecar__portrait img {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  width: 610px;
+  max-width: none;
+  height: auto;
+  filter: contrast(1.06) saturate(1.04);
+  transform: translateX(-50%);
+}
+
+.assistant-launcher__portrait {
+  display: contents;
+}
+
+.digital-assistant .assistant-portrait__mouth {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 36ms linear;
+  will-change: opacity;
+}
+
+.digital-assistant .assistant-portrait__mouth[data-active="true"] {
+  opacity: 1;
+}
+
+.digital-assistant .assistant-sidecar__copy {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 14px 18px 12px;
+}
+
+.digital-assistant .assistant-sidecar__copy > span {
+  color: rgba(239, 228, 214, 0.72);
+  font: 28px/0.9 Georgia, serif;
+}
+
+.digital-assistant .assistant-sidecar__copy p {
+  margin: 0;
+  color: rgba(239, 228, 214, 0.88);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+.digital-assistant .assistant-sidecar__cta,
+.digital-assistant .assistant-sidecar__replay,
+.digital-assistant .assistant-sidecar__rest {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  min-height: 43px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin: 0 14px 10px;
+  border: 1px solid rgba(239, 228, 214, 0.3);
+  background: rgba(18, 10, 11, 0.8);
+  color: var(--paper);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+  letter-spacing: 0.07em;
+  cursor: pointer;
+}
+
+.digital-assistant .assistant-sidecar__replay {
+  min-height: 32px;
+  margin-bottom: 7px;
+  border-color: rgba(138, 52, 58, 0.62);
+  background: rgba(82, 26, 30, 0.5);
+}
+
+.digital-assistant .assistant-sidecar__rest {
+  min-height: 32px;
+  margin-top: -3px;
+  border-color: rgba(239, 228, 214, 0.13);
+  background: transparent;
+  color: rgba(239, 228, 214, 0.54);
+}
+
+.digital-assistant .assistant-sidecar__cta:hover,
+.digital-assistant .assistant-sidecar__cta:focus-visible,
+.digital-assistant .assistant-sidecar__replay:hover,
+.digital-assistant .assistant-sidecar__replay:focus-visible,
+.digital-assistant .assistant-sidecar__rest:hover,
+.digital-assistant .assistant-sidecar__rest:focus-visible {
+  border-color: rgba(239, 228, 214, 0.72);
+  background: rgba(82, 28, 31, 0.9);
+  outline: none;
+}
+
+.digital-assistant .assistant-panel__actions button.assistant-panel__rest {
+  display: flex;
+  width: auto;
+  padding: 0 9px;
+  align-items: center;
+  gap: 6px;
+  color: rgba(239, 228, 214, 0.7);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 7px;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+}
+
+.assistant-launcher__badge small {
+  color: var(--paper);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.digital-assistant .assistant-sidecar > footer {
+  flex: 0 0 auto;
+  padding: 2px 16px 14px;
+  color: rgba(239, 228, 214, 0.4);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 7px;
+  letter-spacing: 0.1em;
+}
+
+.digital-assistant.is-context-card .assistant-sidecar__portrait {
+  flex-basis: 260px;
+}
+
+.digital-assistant.is-dormant-pixel .assistant-launcher,
+.digital-assistant.is-hero-card .assistant-launcher,
+.digital-assistant.is-context-card .assistant-launcher,
+.digital-assistant.is-chat-open .assistant-launcher {
+  display: none;
+}
+
+.digital-assistant.is-launcher .assistant-launcher {
+  display: block;
+}
+
+/* The compact launcher occupies the same portrait slot as the sleeping
+   8-bit character, rather than inheriting the full side-card alignment. */
+.digital-assistant.is-launcher {
+  inset: clamp(108px, 14vh, 136px) clamp(18px, 2vw, 30px) auto auto;
+  width: var(--assistant-sleep-frame-width);
+  height: var(--assistant-sleep-frame-height);
+}
+
+.digital-assistant.is-launcher .assistant-launcher {
+  inset:
+    calc(100% - 63.333px - var(--assistant-sleep-image-half))
+    auto
+    auto
+    50%;
+  transform: translateX(-50%);
+}
+
+.digital-assistant.is-launcher .assistant-launcher:hover,
+.digital-assistant.is-launcher .assistant-launcher:focus-visible {
+  transform: translate(-50%, -3px);
+}
+
+.digital-assistant.is-chat-open .assistant-panel {
+  position: fixed;
+  inset: auto clamp(14px, 2.2vw, 34px) 18px auto;
+  display: flex;
+  width: min(438px, calc(100vw - 28px));
+  height: min(720px, calc(100svh - 36px));
+  flex-direction: column;
+  pointer-events: auto;
+}
+
+@keyframes assistant-pixel-sleep {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(2px);
+  }
+}
+
+@keyframes assistant-sleep-glow {
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: translateX(-50%) scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.04);
+  }
+}
+
+@keyframes assistant-sidecar-final-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* React Bits-inspired Glare Hover for project imagery. */
+.project-card__glare {
+  position: absolute;
+  z-index: 2;
+  inset: -45% -85%;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    112deg,
+    transparent 38%,
+    rgba(239, 228, 214, 0.04) 44%,
+    rgba(255, 244, 231, 0.34) 50%,
+    rgba(239, 228, 214, 0.08) 56%,
+    transparent 62%
+  );
+  box-shadow: none;
+  filter: none;
+  mix-blend-mode: screen;
+  transform: translate3d(-58%, 0, 0);
+  transition: none;
+}
+
+.project-card__link:hover .project-card__glare,
+.project-card__link:focus-visible .project-card__glare,
+.project-card__link.is-previewed .project-card__glare {
+  opacity: 1;
+  animation: project-glare-sweep-final 700ms
+    cubic-bezier(0.2, 0.72, 0.25, 1) both;
+}
+
+@keyframes project-glare-sweep-final {
+  from {
+    transform: translate3d(-58%, 0, 0);
+  }
+  to {
+    transform: translate3d(58%, 0, 0);
+  }
+}
+
+@media (min-width: 901px) {
+  .hero-chapter--right {
+    right: clamp(270px, 18vw, 300px);
+    width: min(620px, calc(100vw - 350px));
+  }
+}
+
+@media (max-width: 640px) {
+  .digital-assistant,
+  .digital-assistant.is-dormant-pixel,
+  .digital-assistant.is-hero-card,
+  .digital-assistant.is-context-card,
+  .digital-assistant.is-chat-open {
+    inset: auto 12px 12px auto;
+    width: 52px;
+    height: 52px;
+  }
+
+  .assistant-dormant,
+  .digital-assistant .assistant-sidecar {
+    display: none;
+  }
+
+  .digital-assistant.is-dormant-pixel .assistant-launcher,
+  .digital-assistant.is-hero-card .assistant-launcher,
+  .digital-assistant.is-context-card .assistant-launcher,
+  .digital-assistant.is-chat-open .assistant-launcher,
+  .digital-assistant.is-launcher .assistant-launcher {
+    display: block;
+    inset: 0;
+    width: 52px;
+    height: 52px;
+    transform: none;
+  }
+
+  .digital-assistant.is-launcher .assistant-launcher:hover,
+  .digital-assistant.is-launcher .assistant-launcher:focus-visible {
+    transform: translateY(-3px);
+  }
+
+  .digital-assistant.is-dormant-pixel .assistant-launcher img,
+  .digital-assistant.is-launcher.is-dormant .assistant-launcher img {
+    top: -6px;
+    width: 64px;
+    image-rendering: pixelated;
+  }
+
+  .digital-assistant .assistant-panel__actions button.assistant-panel__rest {
+    width: 34px;
+    padding: 0;
+  }
+
+  .digital-assistant .assistant-panel__actions button.assistant-panel__rest span {
+    display: none;
+  }
+
+  .digital-assistant.is-chat-open .assistant-panel {
+    inset: 0;
+    width: 100%;
+    height: 100svh;
+  }
+
+  .digital-assistant .assistant-panel > .assistant-language-switch {
+    padding-right: 108px;
+  }
+
+  .digital-assistant.is-chat-open .assistant-launcher {
+    position: fixed;
+    z-index: 5;
+    inset: 10px 58px auto auto;
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistant-dormant img,
+  .assistant-dormant::before,
+  .digital-assistant .assistant-sidecar,
+  .project-card__glare {
+    animation: none;
+    transition: none;
+  }
+
+  .project-card__link:hover .project-card__glare,
+  .project-card__link:focus-visible .project-card__glare,
+  .project-card__link.is-previewed .project-card__glare {
+    opacity: 0.16;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .digital-assistant .assistant-portrait__mouth {
+    transition: none;
+  }
+}

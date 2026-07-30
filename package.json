@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "generate:greeting": "node scripts/generate_luo_zhaoyue_greeting.mjs",
+    "generate:assistant-voice": "node scripts/generate_luo_zhaoyue_voice.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

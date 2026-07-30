@@ -73,12 +73,22 @@ function validatePageContext(value) {
   return { kind, slug };
 }
 
+function validateResponseLanguage(value) {
+  return ["en", "zh", "ja"].includes(value) ? value : "en";
+}
+
 function writeEvent(response, event, payload) {
   response.write(`event: ${event}\n`);
   response.write(`data: ${JSON.stringify(payload)}\n\n`);
 }
 
-async function streamDeepSeek({ apiKey, messages, pageContext, response }) {
+async function streamDeepSeek({
+  apiKey,
+  messages,
+  pageContext,
+  responseLanguage,
+  response,
+}) {
   const upstreamController = new AbortController();
   const timeout = setTimeout(() => upstreamController.abort(), 30_000);
 
@@ -94,7 +104,10 @@ async function streamDeepSeek({ apiKey, messages, pageContext, response }) {
       body: JSON.stringify({
         model: "deepseek-v4-flash",
         messages: [
-          { role: "system", content: buildSystemPrompt(pageContext) },
+          {
+            role: "system",
+            content: buildSystemPrompt(pageContext, responseLanguage),
+          },
           ...messages,
         ],
         thinking: { type: "disabled" },
@@ -189,7 +202,16 @@ function createAssistantProxy({ apiKey }) {
           const body = await readJsonBody(request);
           const messages = validateMessages(body.messages);
           const pageContext = validatePageContext(body.pageContext);
-          await streamDeepSeek({ apiKey, messages, pageContext, response });
+          const responseLanguage = validateResponseLanguage(
+            body.responseLanguage,
+          );
+          await streamDeepSeek({
+            apiKey,
+            messages,
+            pageContext,
+            responseLanguage,
+            response,
+          });
         } catch (error) {
           if (!response.writableEnded) {
             sendJson(response, error.statusCode ?? 500, {

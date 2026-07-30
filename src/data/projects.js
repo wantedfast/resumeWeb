@@ -221,19 +221,19 @@ const projects = [
   },
   {
     slug: "ai-kanojo",
-    title: "AI-KANOJO",
+    title: "AI-KANAJO",
     type: "Local AI companion",
     image: "/assets/project-ai-kanojo.webp",
     imageAlt: "A sculptural local AI companion connected to a task console",
     summary:
       "A Windows AI companion that bridges voice and text requests to Codex App Server with streaming progress, approvals, and task control.",
     assistantIntro:
-      "AI-KANOJO explores a more visible and controllable agent interface. It shows progress, questions, approvals, and cancellation instead of hiding long-running work.",
+      "AI-KANAJO explores a more visible and controllable agent interface. It shows progress, questions, approvals, and cancellation instead of hiding long-running work.",
     status: "Windows MVP / v0.1.2",
     context:
       "Agent systems can perform long-running work, but conventional chat interfaces often hide progress, approvals, and the boundaries of user control.",
     problem:
-      "AI-KANOJO explores a local desktop companion that makes agent work visible and interruptible. Voice and text requests are bridged to Codex App Server while the interface surfaces progress, questions, approvals, and task controls.",
+      "AI-KANAJO explores a local desktop companion that makes agent work visible and interruptible. Voice and text requests are bridged to Codex App Server while the interface surfaces progress, questions, approvals, and task controls.",
     workflow: [
       {
         title: "Receive a request",

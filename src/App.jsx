@@ -9,6 +9,7 @@ import {
   EnvelopeSimple,
   GithubLogo,
   List,
+  Translate,
   X,
 } from "@phosphor-icons/react";
 import { projects as projectCatalog, projectsBySlug } from "./data/projects.js";
@@ -17,6 +18,13 @@ import {
   experiencesBySlug,
 } from "./data/experience.js";
 import { DigitalAssistant } from "./DigitalAssistant.jsx";
+import {
+  awardsByLocale,
+  educationByLocale,
+  getLocalizedCatalog,
+  heroByLocale,
+  siteCopy,
+} from "./site-locales.js";
 
 const FRAME_COUNT = 362;
 const HERO_CAMERA_END = 0.88;
@@ -30,9 +38,9 @@ const heroChapters = [
     kicker: "WANG XINLONG / AI ENGINEER + RESEARCHER",
     title: (
       <>
-        I build AI agents.
+        I build AI agents
         <br />
-        I study how they collaborate with humans.
+        I study how they collaborate with humans
       </>
     ),
     body: "Ph.D. candidate at Doshisha University researching AI agent systems, Human–AI collaboration, and open-source engineering.",
@@ -48,7 +56,7 @@ const heroChapters = [
         <br />
         building production systems,
         <br />
-        I turned to AI research.
+        I turned to AI research
       </>
     ),
     body: "That engineering foundation now shapes how I build and study collaborative AI systems.",
@@ -78,7 +86,7 @@ const heroChapters = [
         <br />
         with teams in China
         <br />
-        and the United States.
+        and the United States
       </>
     ),
     body: "I contributed to Microsoft open-source projects, including Azure Identity and Key Vault.",
@@ -92,7 +100,7 @@ const heroChapters = [
       <>
         From research
         <br />
-        to real products.
+        to real products
       </>
     ),
     body: "COVS · Job Application Agent · Azure Identity",
@@ -108,7 +116,7 @@ const heroChapters = [
       <>
         The work is only
         <br />
-        part of the story.
+        part of the story
       </>
     ),
     body: "Meet the engineer, researcher, and independent builder behind these systems.",
@@ -180,19 +188,30 @@ function useReveal() {
   }, []);
 }
 
-function ScrollSequenceHero({ onOpenProfile }) {
+function ScrollSequenceHero({
+  onOpenProfile,
+  onHeroActiveChange,
+  onHeroScrollActivity,
+  locale,
+  copy,
+}) {
   const sectionRef = useRef(null);
   const canvasRef = useRef(null);
   const chapterRefs = useRef([]);
   const frameRef = useRef(0);
   const focusRef = useRef(0.5);
   const scrollTweenRef = useRef(null);
+  const heroActiveRef = useRef(true);
 
   useEffect(() => {
     let disposed = false;
     let preloadTimer;
     let scrollRaf;
+    let scrollIdleTimer;
     let preloadCursor = 0;
+    let scrollDistance = 0;
+    let scrollActivityLatched = false;
+    let lastScrollY = window.scrollY;
     const scrubState = { progress: 0 };
     const cache = new Map();
     const pending = new Map();
@@ -333,6 +352,15 @@ function ScrollSequenceHero({ onOpenProfile }) {
     }
 
     function updateHero({ immediate = false } = {}) {
+      const section = sectionRef.current;
+      if (section) {
+        const rect = section.getBoundingClientRect();
+        const heroActive = rect.bottom > 0 && rect.top < window.innerHeight;
+        if (heroActive !== heroActiveRef.current) {
+          heroActiveRef.current = heroActive;
+          onHeroActiveChange?.(heroActive);
+        }
+      }
       const target = getScrollProgress();
       if (immediate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         scrollTweenRef.current?.kill();
@@ -351,6 +379,23 @@ function ScrollSequenceHero({ onOpenProfile }) {
     }
 
     function handleScroll() {
+      const nextScrollY = window.scrollY;
+      const delta = Math.abs(nextScrollY - lastScrollY);
+      lastScrollY = nextScrollY;
+      if (heroActiveRef.current) {
+        scrollDistance += delta;
+        if (scrollDistance >= 24 && !scrollActivityLatched) {
+          scrollActivityLatched = true;
+          scrollDistance = 0;
+          onHeroScrollActivity?.();
+        }
+      } else {
+        scrollDistance = 0;
+      }
+      window.clearTimeout(scrollIdleTimer);
+      scrollIdleTimer = window.setTimeout(() => {
+        scrollActivityLatched = false;
+      }, 180);
       window.cancelAnimationFrame(scrollRaf);
       scrollRaf = window.requestAnimationFrame(() => updateHero());
     }
@@ -370,8 +415,9 @@ function ScrollSequenceHero({ onOpenProfile }) {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
       window.clearTimeout(preloadTimer);
+      window.clearTimeout(scrollIdleTimer);
     };
-  }, []);
+  }, [onHeroActiveChange, onHeroScrollActivity]);
 
   return (
     <section className="hero-scroll hero-scroll--chapters" id="top" ref={sectionRef}>
@@ -379,17 +425,19 @@ function ScrollSequenceHero({ onOpenProfile }) {
         <canvas
           className="hero-canvas"
           ref={canvasRef}
-          aria-label="A cinematic scroll journey through Wang Xinlong's profile and work"
+          aria-label={copy.hero.aria}
         />
         <div className="hero-shade" />
 
         <div className="hero-meta">
-          <span>AI ENGINEER · RESEARCHER · BUILDER</span>
-          <span>KYOTO / SHANGHAI</span>
+          <span>{copy.hero.meta}</span>
+          <span>{copy.hero.location}</span>
         </div>
 
         <div className="hero-chapters">
-          {heroChapters.map((chapter, index) => (
+          {heroChapters.map((chapter, index) => {
+            const localized = heroByLocale[locale][index];
+            return (
             <article
               className={`hero-chapter hero-chapter--${chapter.align}`}
               key={chapter.label}
@@ -399,21 +447,29 @@ function ScrollSequenceHero({ onOpenProfile }) {
               aria-hidden={index === 0 ? "false" : "true"}
               style={{ opacity: index === 0 ? 1 : 0 }}
             >
-              <span className="hero-kicker">{chapter.kicker}</span>
-              <h1>{chapter.title}</h1>
-              <p>{chapter.body}</p>
+              <span className="hero-kicker">{localized.kicker}</span>
+              <h1>
+                {localized.titleLines.map((line, lineIndex) => (
+                  <span key={line}>
+                    {line}
+                    {lineIndex < localized.titleLines.length - 1 && <br />}
+                  </span>
+                ))}
+              </h1>
+              <p>{localized.body}</p>
               {chapter.action && chapter.href && (
                 <a className="hero-chapter__action" href={chapter.href}>
-                  {chapter.action} <ArrowRight size={15} weight="bold" />
+                  {localized.action} <ArrowRight size={15} weight="bold" />
                 </a>
               )}
               {chapter.action && !chapter.href && (
                 <button className="hero-chapter__action" type="button" onClick={onOpenProfile}>
-                  {chapter.action} <ArrowRight size={15} weight="bold" />
+                  {localized.action} <ArrowRight size={15} weight="bold" />
                 </button>
               )}
             </article>
-          ))}
+            );
+          })}
         </div>
 
       </div>
@@ -517,7 +573,10 @@ function createHorizontalLoop(elements, options = {}) {
         time: gsap.utils.wrap(0, timeline.duration()),
       };
     }
-    return timeline.tweenTo(targetTime, tweenVars);
+    timeline.navigationTween?.kill();
+    const navigationTween = timeline.tweenTo(targetTime, tweenVars);
+    timeline.navigationTween = navigationTween;
+    return navigationTween;
   }
 
   timeline.times = times;
@@ -532,16 +591,29 @@ function createHorizontalLoop(elements, options = {}) {
   return timeline;
 }
 
-function ProjectCarousel({ items, onAssistantIntro }) {
+function ProjectCarousel({ items, onAssistantIntro, locale }) {
   const trackRef = useRef(null);
   const loopRef = useRef(null);
+  const loopInstancesRef = useRef(new Set());
   const pauseReasonsRef = useRef(new Set());
   const [activeIndex, setActiveIndex] = useState(0);
 
   const setPaused = useCallback((reason, paused) => {
     if (paused) pauseReasonsRef.current.add(reason);
     else pauseReasonsRef.current.delete(reason);
-    loopRef.current?.paused(pauseReasonsRef.current.size > 0);
+    const shouldPause = pauseReasonsRef.current.size > 0;
+    if (trackRef.current) {
+      trackRef.current.dataset.paused = shouldPause ? "true" : "false";
+    }
+    loopInstancesRef.current.forEach((loop) => {
+      if (shouldPause) {
+        loop.navigationTween?.pause();
+        loop.pause();
+      } else {
+        loop.navigationTween?.resume();
+        loop.play();
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -559,10 +631,20 @@ function ProjectCarousel({ items, onAssistantIntro }) {
     let disposed = false;
     const cards = Array.from(track.querySelectorAll(".project-card"));
 
+    function updateCardEdgeStates() {
+      const viewportWidth = document.documentElement.clientWidth;
+      cards.forEach((card) => {
+        const bounds = card.getBoundingClientRect();
+        const isClipped = bounds.left < 0 || bounds.right > viewportWidth;
+        card.classList.toggle("is-edge-clipped", isClipped);
+      });
+    }
+
     function buildLoop() {
       if (disposed || cards.length === 0) return;
       const preservedIndex = loopRef.current?.current() ?? 0;
-      loopRef.current?.kill();
+      loopInstancesRef.current.forEach((loop) => loop.kill());
+      loopInstancesRef.current.clear();
       gsap.set(cards, { clearProps: "transform" });
       const gap = Number.parseFloat(getComputedStyle(track).columnGap) || 0;
       const loop = createHorizontalLoop(cards, {
@@ -571,9 +653,12 @@ function ProjectCarousel({ items, onAssistantIntro }) {
         paddingRight: gap,
       });
       loopRef.current = loop;
-      loop.toIndex(preservedIndex, { duration: 0 });
+      loopInstancesRef.current.add(loop);
+      loop.setCurrent(preservedIndex);
+      loop.time(loop.times[preservedIndex] ?? 0, true);
       loop.paused(pauseReasonsRef.current.size > 0);
       loop.eventCallback("onUpdate", () => {
+        updateCardEdgeStates();
         const duration = loop.duration();
         const time = loop.time();
         let closest = 0;
@@ -611,8 +696,10 @@ function ProjectCarousel({ items, onAssistantIntro }) {
       window.clearTimeout(rebuildTimer);
       resizeObserver.disconnect();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      loopRef.current?.kill();
+      loopInstancesRef.current.forEach((loop) => loop.kill());
+      loopInstancesRef.current.clear();
       loopRef.current = null;
+      cards.forEach((card) => card.classList.remove("is-edge-clipped"));
       gsap.set(cards, { clearProps: "transform" });
     };
   }, [items.length, setPaused]);
@@ -650,13 +737,6 @@ function ProjectCarousel({ items, onAssistantIntro }) {
     moveToProject(event.key === "ArrowRight" ? 1 : -1);
   }
 
-  function updateSpotlight(event) {
-    const card = event.currentTarget;
-    const bounds = card.getBoundingClientRect();
-    card.style.setProperty("--spot-x", `${event.clientX - bounds.left}px`);
-    card.style.setProperty("--spot-y", `${event.clientY - bounds.top}px`);
-  }
-
   return (
     <div className="project-carousel">
       <div className="project-carousel__controls" data-reveal>
@@ -667,14 +747,14 @@ function ProjectCarousel({ items, onAssistantIntro }) {
         <div>
           <button
             type="button"
-            aria-label="Show previous project"
+            aria-label={locale === "zh" ? "显示上一个项目" : "Show previous project"}
             onClick={() => moveToProject(-1)}
           >
             <CaretLeft size={19} weight="bold" />
           </button>
           <button
             type="button"
-            aria-label="Show next project"
+            aria-label={locale === "zh" ? "显示下一个项目" : "Show next project"}
             onClick={() => moveToProject(1)}
           >
             <CaretRight size={19} weight="bold" />
@@ -685,7 +765,7 @@ function ProjectCarousel({ items, onAssistantIntro }) {
         className="project-track"
         ref={trackRef}
         role="region"
-        aria-label="Selected projects"
+        aria-label={locale === "zh" ? "精选项目" : "Selected projects"}
         tabIndex={0}
         onKeyDown={handleTrackKeyDown}
         onPointerEnter={() => setPaused("hover", true)}
@@ -702,18 +782,27 @@ function ProjectCarousel({ items, onAssistantIntro }) {
             <a
               className="project-card__link"
               href={`/projects/${project.slug}`}
-              aria-label={`View the ${project.title} project`}
-              onPointerMove={updateSpotlight}
+              aria-label={
+                locale === "zh"
+                  ? `查看 ${project.title} 项目`
+                  : `View the ${project.title} project`
+              }
               onPointerEnter={(event) => {
                 event.currentTarget.classList.add("is-previewed");
-                onAssistantIntro?.(project.assistantIntro);
+                onAssistantIntro?.({
+                  id: `project:${project.slug}`,
+                });
               }}
               onPointerLeave={(event) => {
                 event.currentTarget.classList.remove("is-previewed");
-                onAssistantIntro?.("");
+                onAssistantIntro?.(null);
               }}
-              onFocus={() => onAssistantIntro?.(project.assistantIntro)}
-              onBlur={() => onAssistantIntro?.("")}
+              onFocus={() =>
+                onAssistantIntro?.({
+                  id: `project:${project.slug}`,
+                })
+              }
+              onBlur={() => onAssistantIntro?.(null)}
             >
               <div className="project-image">
                 <img
@@ -727,7 +816,8 @@ function ProjectCarousel({ items, onAssistantIntro }) {
                   <span>{project.type}</span>
                   <p>{project.summary}</p>
                   <strong>
-                    View project <ArrowUpRight size={15} weight="bold" />
+                    {locale === "zh" ? "查看项目" : "View project"}{" "}
+                    <ArrowUpRight size={15} weight="bold" />
                   </strong>
                 </div>
               </div>
@@ -744,7 +834,7 @@ function ProjectCarousel({ items, onAssistantIntro }) {
   );
 }
 
-function LanyardProfile({ open, onClose }) {
+function LanyardProfile({ open, onClose, locale, copy }) {
   const [flipped, setFlipped] = useState(false);
   const modalRef = useRef(null);
   const cordRef = useRef(null);
@@ -907,13 +997,17 @@ function LanyardProfile({ open, onClose }) {
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
     >
-      <button className="profile-backdrop" type="button" onClick={onClose} aria-label="Dismiss profile card" />
-      <button className="profile-close" type="button" onClick={onClose} aria-label="Close profile card">
+      <button className="profile-backdrop" type="button" onClick={onClose} aria-label={copy.profile.dismiss} />
+      <button className="profile-close" type="button" onClick={onClose} aria-label={copy.profile.close}>
         <X size={22} />
       </button>
-      <p className="profile-hint">DRAG · CLICK TO FLIP · ESC TO CLOSE</p>
+      <p className="profile-hint">{copy.profile.hint}</p>
       <div className="lanyard-cord" ref={cordRef}>
-        <span>WANG XINLONG · HUMAN × AI · WANG XINLONG</span>
+        <span>
+          {locale === "zh"
+            ? "王欣隆 · 人类 × AI · 王欣隆"
+            : "WANG XINLONG · HUMAN × AI · WANG XINLONG"}
+        </span>
       </div>
       <article
         className="identity-card"
@@ -925,11 +1019,11 @@ function LanyardProfile({ open, onClose }) {
       >
         <div className={`identity-card__flip${flipped ? " is-flipped" : ""}`}>
           <section className="identity-card__face identity-card__front" aria-hidden={flipped}>
-            <h2 id="profile-card-title" className="sr-only">Wang Xinlong profile card</h2>
+            <h2 id="profile-card-title" className="sr-only">{copy.profile.title}</h2>
             <img
               className="identity-card__exact-front"
               src="/assets/wang-xinlong-card-exact.png"
-              alt="Wang Xinlong identity card"
+              alt={copy.profile.alt}
               draggable="false"
             />
           </section>
@@ -938,30 +1032,30 @@ function LanyardProfile({ open, onClose }) {
             <div className="identity-card__slot" />
             <div className="identity-card__header">
               <span>PROFILE</span>
-              <span>WANG XINLONG</span>
+              <span>{locale === "zh" ? "王欣隆" : "WANG XINLONG"}</span>
             </div>
             <dl className="identity-card__details">
               <div>
-                <dt>CURRENT</dt>
-                <dd>Ph.D. Candidate · Doshisha University</dd>
+                <dt>{copy.profile.current}</dt>
+                <dd>{copy.profile.currentValue}</dd>
               </div>
               <div>
-                <dt>FOCUS</dt>
-                <dd>LLM Agents · Human–AI Collaboration · Multi-Agent Learning</dd>
+                <dt>{copy.profile.focus}</dt>
+                <dd>{copy.profile.focusValue}</dd>
               </div>
               <div>
-                <dt>EXPERIENCE</dt>
-                <dd>Global engineering · Microsoft open source</dd>
+                <dt>{copy.profile.experience}</dt>
+                <dd>{copy.profile.experienceValue}</dd>
               </div>
               <div>
-                <dt>BUILDING</dt>
-                <dd>Research systems · AI products · Live apps</dd>
+                <dt>{copy.profile.building}</dt>
+                <dd>{copy.profile.buildingValue}</dd>
               </div>
             </dl>
             <button type="button" onClick={visitProfile}>
-              VIEW FULL PROFILE <ArrowRight size={14} weight="bold" />
+              {copy.profile.view} <ArrowRight size={14} weight="bold" />
             </button>
-            <span className="identity-card__flip-hint">CLICK CARD TO RETURN</span>
+            <span className="identity-card__flip-hint">{copy.profile.return}</span>
           </section>
         </div>
       </article>
@@ -969,9 +1063,20 @@ function LanyardProfile({ open, onClose }) {
   );
 }
 
-function PortfolioHome({ onAssistantIntro }) {
+function PortfolioHome({
+  onAssistantIntro,
+  onHeroActiveChange,
+  onHeroScrollActivity,
+  locale,
+  onLocaleToggle,
+  copy,
+  experiences,
+  projects,
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const manifestoLead =
+    locale === "zh" ? copy.manifesto[0].split(" AI ") : null;
   const closeProfile = useCallback(() => setProfileOpen(false), []);
   useReveal();
 
@@ -995,19 +1100,34 @@ function PortfolioHome({ onAssistantIntro }) {
           <small>PORTFOLIO — 2026</small>
         </a>
         <nav className={menuOpen ? "nav is-open" : "nav"} aria-label="Primary">
-          <a href="#about" onClick={openProfile}>ABOUT ME</a>
-          <a href="#experience" onClick={closeMenu}>EXPERIENCE</a>
-          <a href="#work" onClick={closeMenu}>WORK</a>
-          <a href="#contact" onClick={closeMenu}>CONTACT</a>
+          <a href="#about" onClick={openProfile}>{copy.nav.about}</a>
+          <a href="#experience" onClick={closeMenu}>{copy.nav.experience}</a>
+          <a href="#work" onClick={closeMenu}>{copy.nav.work}</a>
+          <a href="#contact" onClick={closeMenu}>{copy.nav.contact}</a>
         </nav>
-        <a className="resume-button" href="/Wang-Xinlong-Resume.pdf" download>
-          <span>RESUME</span>
-          <DownloadSimple size={15} weight="bold" />
-        </a>
+        <div className="header-actions">
+          <button
+            className="language-toggle"
+            type="button"
+            onClick={onLocaleToggle}
+            aria-label={
+              locale === "zh"
+                ? "Switch website to English"
+                : "将网站切换为中文"
+            }
+          >
+            <Translate size={15} weight="bold" />
+            {copy.nav.switchLanguage}
+          </button>
+          <a className="resume-button" href="/Wang-Xinlong-Resume.pdf" download>
+            <span>{copy.nav.resume}</span>
+            <DownloadSimple size={15} weight="bold" />
+          </a>
+        </div>
         <button
           className="menu-button"
           type="button"
-          aria-label="Toggle navigation"
+          aria-label={copy.nav.menu}
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((value) => !value)}
         >
@@ -1015,50 +1135,58 @@ function PortfolioHome({ onAssistantIntro }) {
         </button>
       </header>
 
-      <ScrollSequenceHero onOpenProfile={() => setProfileOpen(true)} />
+      <ScrollSequenceHero
+        onOpenProfile={() => setProfileOpen(true)}
+        onHeroActiveChange={onHeroActiveChange}
+        onHeroScrollActivity={onHeroScrollActivity}
+        locale={locale}
+        copy={copy}
+      />
 
       <section className="manifesto section-pad">
         <p data-reveal>
-          I build AI agents that plan, coordinate, and act.
-          <br />
-          <em>I use AI to help people in their daily lives.</em>
+          <span>
+            {manifestoLead ? (
+              <>
+                {manifestoLead[0]}
+                <br />
+                AI {manifestoLead[1]}
+              </>
+            ) : (
+              copy.manifesto[0]
+            )}
+          </span>
+          <em>{copy.manifesto[1]}</em>
         </p>
       </section>
 
       <section className="about section-pad" id="about">
         <div className="section-label" data-reveal>
-          <span>ABOUT / PROFILE</span>
-          <span>35.0116° N · 135.7681° E</span>
+          <span>{copy.about.label}</span>
+          <span>{copy.about.coordinates}</span>
         </div>
         <div className="about-grid">
           <div className="about-portrait" data-reveal>
             <div className="about-portrait__card-photo">
               <img
                 src="/assets/wang-xinlong-portrait-selected.png"
-                alt="Portrait of Wang Xinlong"
+                alt={copy.about.portraitAlt}
               />
             </div>
             <div>
-              <span>WANG XINLONG</span>
-              <span>AI ENGINEER · RESEARCHER</span>
+              <span>{copy.about.name}</span>
+              <span>{copy.about.role}</span>
             </div>
           </div>
           <div className="about-statement" data-reveal>
-            <h2>Building intelligent systems. Studying Human–AI collaboration.</h2>
-            <p>
-              AI engineer and Ph.D. candidate in computer science focused on
-              LLM agents, Human–AI collaboration, and multi-agent
-              reinforcement learning.
-            </p>
-            <p>
-              Eight years of experience across software engineering, cloud
-              infrastructure, Azure SDK development, authentication, and
-              international technical teams inform this research.
-            </p>
+            <h2>{copy.about.heading}</h2>
+            {copy.about.paragraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
           </div>
         </div>
         <div className="education-list" data-reveal>
-          {education.map(([period, school, degree]) => (
+          {educationByLocale[locale].map(([period, school, degree]) => (
             <div key={`${period}-${degree}`}>
               <span>{period}</span>
               <strong>{school}</strong>
@@ -1070,24 +1198,36 @@ function PortfolioHome({ onAssistantIntro }) {
 
       <section className="experience section-pad" id="experience">
         <div className="section-label" data-reveal>
-          <span>WORK EXPERIENCE / 08+ YEARS</span>
-          <span>SHANGHAI · APAC · KYOTO</span>
+          <span>{copy.experience.label}</span>
+          <span>{copy.experience.location}</span>
         </div>
         <div className="experience-heading">
-          <h2 data-reveal>Work experience</h2>
+          <h2 data-reveal>{copy.experience.heading}</h2>
         </div>
         <div className="experience-list">
-          {experienceCatalog.map((item, index) => (
+          {experiences.map((item, index) => (
             <a
               className="experience-row"
               href={`/experience/${item.slug}`}
               key={item.slug}
               data-reveal
-              aria-label={`View details for ${item.role} at ${item.company}`}
-              onPointerEnter={() => onAssistantIntro?.(item.assistantIntro)}
-              onPointerLeave={() => onAssistantIntro?.("")}
-              onFocus={() => onAssistantIntro?.(item.assistantIntro)}
-              onBlur={() => onAssistantIntro?.("")}
+              aria-label={
+                locale === "zh"
+                  ? `查看 ${item.company} 的 ${item.role} 经历`
+                  : `View details for ${item.role} at ${item.company}`
+              }
+              onPointerEnter={() =>
+                onAssistantIntro?.({
+                  id: `experience:${item.slug}`,
+                })
+              }
+              onPointerLeave={() => onAssistantIntro?.(null)}
+              onFocus={() =>
+                onAssistantIntro?.({
+                  id: `experience:${item.slug}`,
+                })
+              }
+              onBlur={() => onAssistantIntro?.(null)}
             >
               <span>{String(index + 1).padStart(2, "0")}</span>
               <span>{item.period}</span>
@@ -1095,7 +1235,8 @@ function PortfolioHome({ onAssistantIntro }) {
                 <h3>{item.company}</h3>
                 <strong>{item.role}</strong>
                 <span className="experience-row__action">
-                  VIEW DETAILS <ArrowUpRight size={14} weight="bold" />
+                  {copy.experience.details}{" "}
+                  <ArrowUpRight size={14} weight="bold" />
                 </span>
               </div>
               <p>{item.description}</p>
@@ -1106,49 +1247,46 @@ function PortfolioHome({ onAssistantIntro }) {
 
       <section className="now section-pad">
         <div className="section-label" data-reveal>
-          <span>NOW / DOSHISHA UNIVERSITY</span>
-          <span>2025—2028</span>
+          <span>{copy.now.label}</span>
+          <span>{copy.now.period}</span>
         </div>
         <div className="now-grid">
           <div data-reveal>
-            <span>Ph.D. RESEARCH</span>
-            <h2>NOW</h2>
+            <span>{copy.now.type}</span>
+            <h2>{copy.now.heading}</h2>
           </div>
-          <p data-reveal>
-            Researching Human–AI collaboration with world models, focusing on
-            how AI agents infer human cooperative intent from actions and
-            interaction dynamics.
-          </p>
+          <p data-reveal>{copy.now.body}</p>
         </div>
       </section>
 
       <section className="work section-pad" id="work">
         <div className="section-label" data-reveal>
-          <span>FEATURED WORK</span>
-          <span>RESEARCH + ENGINEERING</span>
+          <span>{copy.work.label}</span>
+          <span>{copy.work.type}</span>
         </div>
         <div className="work-heading">
-          <h2 data-reveal>Selected work</h2>
+          <h2 data-reveal>{copy.work.heading}</h2>
         </div>
         <ProjectCarousel
-          items={projectCatalog}
+          items={projects}
           onAssistantIntro={onAssistantIntro}
+          locale={locale}
         />
       </section>
 
       <section className="recognition section-pad" id="publication">
         <div className="section-label" data-reveal>
-          <span>RESEARCH OUTPUT</span>
+          <span>{copy.research.label}</span>
           <span>2026</span>
         </div>
-        <h2 className="publication-heading" data-reveal>PUBLICATIONS</h2>
+        <h2 className="publication-heading" data-reveal>{copy.research.publications}</h2>
         <article className="publication" data-reveal>
           <span className="publication-number">01</span>
           <div className="publication-copy">
-            <span>PUBLISHED · IJABC · 2026</span>
-            <h3>A Continuous-Space Overcooked Simulator for Multi-Agent Coordination</h3>
-            <p>Xinlong Wang · Kota Toyoda · Miho Ohsaki · Kimiaki Shirahama</p>
-            <p>International Journal of Activity and Behavior Computing</p>
+            <span>{copy.research.published}</span>
+            <h3>{copy.research.paper}</h3>
+            <p>{copy.research.authors}</p>
+            <p>{copy.research.venue}</p>
           </div>
           <a
             className="publication-link"
@@ -1156,12 +1294,12 @@ function PortfolioHome({ onAssistantIntro }) {
             target="_blank"
             rel="noreferrer"
           >
-            VIEW PAPER <ArrowUpRight size={14} weight="bold" />
+            {copy.research.viewPaper} <ArrowUpRight size={14} weight="bold" />
           </a>
         </article>
-        <h2 className="recognition-heading" data-reveal>RECOGNITION</h2>
+        <h2 className="recognition-heading" data-reveal>{copy.research.recognition}</h2>
         <div className="awards">
-          {awards.map((award, index) => (
+          {awardsByLocale[locale].map((award, index) => (
             <div key={award} data-reveal>
               <span>{String(index + 1).padStart(2, "0")}</span>
               <strong>{award}</strong>
@@ -1173,36 +1311,38 @@ function PortfolioHome({ onAssistantIntro }) {
       <footer className="footer" id="contact">
         <div className="footer-panel">
           <div>
-            <span>OPEN TO AI ENGINEERING + RESEARCH</span>
-            <h2>Let’s build<br />better agents.</h2>
+            <span>{copy.footer.availability}</span>
+            <h2>{copy.footer.headingLines[0]}<br />{copy.footer.headingLines[1]}</h2>
           </div>
           <a className="email-button" href="mailto:wangfeichen@hotmail.com">
             <EnvelopeSimple size={17} weight="bold" />
-            EMAIL WANG
+            {copy.footer.email}
             <ArrowRight size={17} weight="bold" />
           </a>
         </div>
         <div className="footer-grid">
           <div className="footer-brand">
-            <span>WANG XL</span>
-            <small>AI ENGINEER · RESEARCHER</small>
+            <span>{locale === "zh" ? "王欣隆" : "WANG XL"}</span>
+            <small>{copy.about.role}</small>
           </div>
           <div>
-            <span className="footer-label">NAVIGATION</span>
-            <button type="button" onClick={() => setProfileOpen(true)}>About Me</button>
-            <a href="#experience">Experience</a>
-            <a href="#work">Work</a>
+            <span className="footer-label">{copy.footer.navigation}</span>
+            <button type="button" onClick={() => setProfileOpen(true)}>{copy.footer.about}</button>
+            <a href="#experience">{copy.footer.experience}</a>
+            <a href="#work">{copy.footer.work}</a>
           </div>
           <div>
-            <span className="footer-label">CONTACT</span>
+            <span className="footer-label">{copy.footer.contact}</span>
             <a href="mailto:wangfeichen@hotmail.com">Email</a>
+            <a href="tel:+8619921565068">{copy.footer.chinaPhone}</a>
+            <a href="tel:+818038515068">{copy.footer.japanPhone}</a>
             <a href="https://github.com/wantedfast" target="_blank" rel="noreferrer">
               <GithubLogo size={15} /> GitHub
             </a>
-            <a href="/Wang-Xinlong-Resume.pdf" download>Resume</a>
+            <a href="/Wang-Xinlong-Resume.pdf" download>{copy.nav.resume}</a>
           </div>
           <div>
-            <span className="footer-label">SKILLS</span>
+            <span className="footer-label">{copy.footer.skills}</span>
             <span>C# · Python</span>
             <span>LLM Agents</span>
             <span>Azure Identity</span>
@@ -1210,47 +1350,67 @@ function PortfolioHome({ onAssistantIntro }) {
           </div>
         </div>
         <div className="footer-bottom">
-          <span>© {year} WANG XINLONG</span>
-          <span>DESIGNED FOR HUMAN × AI COLLABORATION</span>
+          <span>© {year} {locale === "zh" ? "王欣隆" : "WANG XINLONG"}</span>
+          <span>{copy.footer.designed}</span>
         </div>
       </footer>
 
-      <LanyardProfile open={profileOpen} onClose={closeProfile} />
+      <LanyardProfile
+        open={profileOpen}
+        onClose={closeProfile}
+        locale={locale}
+        copy={copy}
+      />
     </main>
   );
 }
 
-function ExperienceDetailPage({ experience }) {
+function ExperienceDetailPage({
+  experience,
+  experiences,
+  locale,
+  onLocaleToggle,
+  copy,
+}) {
   useEffect(() => {
     const previousTitle = document.title;
-    document.title = `${experience.role} at ${experience.company} / Wang Xinlong`;
+    document.title =
+      locale === "zh"
+        ? `${experience.company} · ${experience.role} / 王欣隆`
+        : `${experience.role} at ${experience.company} / Wang Xinlong`;
     window.scrollTo(0, 0);
     return () => {
       document.title = previousTitle;
     };
-  }, [experience]);
+  }, [experience, locale]);
 
   return (
     <main className="project-page experience-page">
       <header className="project-page__header">
         <a className="wordmark" href="/">
           <span>WANG XL</span>
-          <small>EXPERIENCE INDEX</small>
+          <small>{copy.detail.experienceIndex}</small>
         </a>
-        <a className="project-page__back" href="/#experience">
-          <CaretLeft size={16} weight="bold" />
-          BACK TO WORK EXPERIENCE
-        </a>
+        <div className="project-page__header-actions">
+          <button className="language-toggle" type="button" onClick={onLocaleToggle}>
+            <Translate size={15} weight="bold" />
+            {copy.nav.switchLanguage}
+          </button>
+          <a className="project-page__back" href="/#experience">
+            <CaretLeft size={16} weight="bold" />
+            {copy.detail.backExperience}
+          </a>
+        </div>
       </header>
 
       <div className="project-page__layout">
         <aside className="project-page__sidebar">
           <div className="project-page__sidebar-intro">
-            <span>WORK EXPERIENCE</span>
+            <span>{copy.detail.workExperience}</span>
             <strong>{experience.period}</strong>
           </div>
           <nav aria-label="Work experience index">
-            {experienceCatalog.map((item, index) => (
+            {experiences.map((item, index) => (
               <a
                 className={item.slug === experience.slug ? "is-active" : ""}
                 href={`/experience/${item.slug}`}
@@ -1277,13 +1437,13 @@ function ExperienceDetailPage({ experience }) {
           </header>
 
           <section className="project-page__section project-page__section--lead">
-            <span>CONTEXT</span>
+            <span>{copy.detail.context}</span>
             <p>{experience.context}</p>
           </section>
 
           <div className="project-page__split">
             <section className="project-page__section">
-              <span>WHAT I DID</span>
+              <span>{copy.detail.whatIDid}</span>
               <ul className="project-page__list">
                 {experience.responsibilities.map((responsibility) => (
                   <li key={responsibility}>{responsibility}</li>
@@ -1292,7 +1452,7 @@ function ExperienceDetailPage({ experience }) {
             </section>
 
             <section className="project-page__section">
-              <span>CONTRIBUTION</span>
+              <span>{copy.detail.contribution}</span>
               <ul className="project-page__list">
                 {experience.contributions.map((contribution) => (
                   <li key={contribution}>{contribution}</li>
@@ -1302,7 +1462,7 @@ function ExperienceDetailPage({ experience }) {
           </div>
 
           <section className="project-page__section">
-            <span>WORKING ENVIRONMENT</span>
+            <span>{copy.detail.workingEnvironment}</span>
             <div className="project-page__tags">
               {experience.stack.map((item) => (
                 <span key={item}>{item}</span>
@@ -1312,11 +1472,11 @@ function ExperienceDetailPage({ experience }) {
 
           <footer className="project-page__footer">
             <div>
-              <span>ROLE</span>
+              <span>{copy.detail.role}</span>
               <strong>{experience.role}</strong>
             </div>
             <div className="experience-page__meta">
-              <span>LOCATION</span>
+              <span>{copy.detail.location}</span>
               <strong>{experience.location}</strong>
             </div>
           </footer>
@@ -1326,37 +1486,49 @@ function ExperienceDetailPage({ experience }) {
   );
 }
 
-function ProjectDetailPage({ project }) {
+function ProjectDetailPage({
+  project,
+  projects,
+  locale,
+  onLocaleToggle,
+  copy,
+}) {
   useEffect(() => {
     const previousTitle = document.title;
-    document.title = `${project.title} / Wang Xinlong`;
+    document.title = `${project.title} / ${locale === "zh" ? "王欣隆" : "Wang Xinlong"}`;
     window.scrollTo(0, 0);
     return () => {
       document.title = previousTitle;
     };
-  }, [project]);
+  }, [project, locale]);
 
   return (
     <main className="project-page">
       <header className="project-page__header">
         <a className="wordmark" href="/">
           <span>WANG XL</span>
-          <small>PROJECT INDEX</small>
+          <small>{copy.detail.projectIndex}</small>
         </a>
-        <a className="project-page__back" href="/#work">
-          <CaretLeft size={16} weight="bold" />
-          BACK TO SELECTED WORK
-        </a>
+        <div className="project-page__header-actions">
+          <button className="language-toggle" type="button" onClick={onLocaleToggle}>
+            <Translate size={15} weight="bold" />
+            {copy.nav.switchLanguage}
+          </button>
+          <a className="project-page__back" href="/#work">
+            <CaretLeft size={16} weight="bold" />
+            {copy.detail.backProjects}
+          </a>
+        </div>
       </header>
 
       <div className="project-page__layout">
         <aside className="project-page__sidebar">
           <div className="project-page__sidebar-intro">
-            <span>SELECTED WORK</span>
+            <span>{copy.detail.selectedWork}</span>
             <strong>{project.status}</strong>
           </div>
           <nav aria-label="Project index">
-            {projectCatalog.map((item, index) => (
+            {projects.map((item, index) => (
               <a
                 className={item.slug === project.slug ? "is-active" : ""}
                 href={`/projects/${item.slug}`}
@@ -1381,17 +1553,17 @@ function ProjectDetailPage({ project }) {
           </header>
 
           <section className="project-page__section project-page__section--lead">
-            <span>CONTEXT</span>
+            <span>{copy.detail.context}</span>
             <p>{project.context}</p>
           </section>
 
           <section className="project-page__section project-page__section--lead">
-            <span>THE PROBLEM</span>
+            <span>{copy.detail.problem}</span>
             <p>{project.problem}</p>
           </section>
 
           <section className="project-page__section">
-            <span>WORKFLOW</span>
+            <span>{copy.detail.workflow}</span>
             <ol className="project-page__workflow">
               {project.workflow.map((step, index) => (
                 <li key={step.title}>
@@ -1407,7 +1579,7 @@ function ProjectDetailPage({ project }) {
 
           <div className="project-page__split">
             <section className="project-page__section">
-              <span>CORE CAPABILITIES</span>
+              <span>{copy.detail.coreCapabilities}</span>
               <ul className="project-page__list">
                 {project.features.map((feature) => (
                   <li key={feature}>{feature}</li>
@@ -1416,7 +1588,7 @@ function ProjectDetailPage({ project }) {
             </section>
 
             <section className="project-page__section">
-              <span>MY CONTRIBUTION</span>
+              <span>{copy.detail.myContribution}</span>
               <ul className="project-page__list">
                 {project.contribution.map((item) => (
                   <li key={item}>{item}</li>
@@ -1426,7 +1598,7 @@ function ProjectDetailPage({ project }) {
           </div>
 
           <section className="project-page__section">
-            <span>TECHNICAL DECISIONS</span>
+            <span>{copy.detail.technicalDecisions}</span>
             <div className="project-page__decisions">
               {project.technicalDecisions.map((decision, index) => (
                 <article key={decision.title}>
@@ -1440,7 +1612,7 @@ function ProjectDetailPage({ project }) {
 
           <div className="project-page__split project-page__split--footer">
             <section className="project-page__section">
-              <span>TECHNOLOGY</span>
+              <span>{copy.detail.technology}</span>
               <div className="project-page__tags">
                 {project.stack.map((item) => (
                   <span key={item}>{item}</span>
@@ -1449,7 +1621,7 @@ function ProjectDetailPage({ project }) {
             </section>
 
             <section className="project-page__section">
-              <span>CURRENT LIMITS</span>
+              <span>{copy.detail.currentLimits}</span>
               <ul className="project-page__list">
                 {project.limitations.map((limitation) => (
                   <li key={limitation}>{limitation}</li>
@@ -1460,7 +1632,7 @@ function ProjectDetailPage({ project }) {
 
           <footer className="project-page__footer">
             <div>
-              <span>PROJECT STATUS</span>
+              <span>{copy.detail.projectStatus}</span>
               <strong>{project.status}</strong>
             </div>
             {project.links.length > 0 && (
@@ -1484,34 +1656,78 @@ function ProjectDetailPage({ project }) {
   );
 }
 
-function ProjectNotFound() {
+function ProjectNotFound({ copy }) {
   return (
     <main className="project-not-found">
       <span>404 / PROJECT NOT FOUND</span>
-      <h1>This project is not in the selected work index.</h1>
+      <h1>{copy.notFound.project}</h1>
       <a href="/#work">
         <CaretLeft size={16} weight="bold" />
-        RETURN TO SELECTED WORK
+        {copy.notFound.returnProjects}
       </a>
     </main>
   );
 }
 
-function ExperienceNotFound() {
+function ExperienceNotFound({ copy }) {
   return (
     <main className="project-not-found">
       <span>404 / EXPERIENCE NOT FOUND</span>
-      <h1>This role is not in the work experience index.</h1>
+      <h1>{copy.notFound.experience}</h1>
       <a href="/#experience">
         <CaretLeft size={16} weight="bold" />
-        RETURN TO WORK EXPERIENCE
+        {copy.notFound.returnExperience}
       </a>
     </main>
   );
 }
 
+function readInitialLocale() {
+  try {
+    const saved = localStorage.getItem("wang-portfolio-locale");
+    if (saved === "en" || saved === "zh") return saved;
+  } catch {
+    // Use browser language when persistence is unavailable.
+  }
+  return navigator.language?.toLowerCase().startsWith("zh") ? "zh" : "en";
+}
+
 function App() {
-  const [assistantIntro, setAssistantIntro] = useState("");
+  const [locale, setLocale] = useState(readInitialLocale);
+  const [assistantIntro, setAssistantIntro] = useState(null);
+  const [heroScrollRevision, setHeroScrollRevision] = useState(0);
+  const reportHeroScrollActivity = useCallback(
+    () => setHeroScrollRevision((revision) => revision + 1),
+    [],
+  );
+  const [heroActive, setHeroActive] = useState(
+    () =>
+      window.location.hash === "" ||
+      window.location.hash === "#top",
+  );
+  const copy = siteCopy[locale];
+  const localizedCatalog = useMemo(
+    () =>
+      getLocalizedCatalog(locale, experienceCatalog, projectCatalog),
+    [locale],
+  );
+  const experiences = localizedCatalog.experiences;
+  const projects = localizedCatalog.projects;
+
+  const toggleLocale = useCallback(() => {
+    setLocale((current) => (current === "zh" ? "en" : "zh"));
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = locale === "zh" ? "zh-CN" : "en";
+    document.title = copy.documentTitle;
+    try {
+      localStorage.setItem("wang-portfolio-locale", locale);
+    } catch {
+      // The active view still updates when persistence is unavailable.
+    }
+  }, [copy.documentTitle, locale]);
+
   let pageContent;
   let pageContext = { kind: "home", slug: null };
 
@@ -1523,15 +1739,21 @@ function App() {
     try {
       projectSlug = decodeURIComponent(projectMatch[1]);
     } catch {
-      pageContent = <ProjectNotFound />;
+      pageContent = <ProjectNotFound copy={copy} />;
     }
     if (!pageContent) {
-      const project = projectsBySlug[projectSlug];
+      const project = projects.find((item) => item.slug === projectSlug);
       pageContext = { kind: "project", slug: projectSlug };
       pageContent = project ? (
-        <ProjectDetailPage project={project} />
+        <ProjectDetailPage
+          project={project}
+          projects={projects}
+          locale={locale}
+          onLocaleToggle={toggleLocale}
+          copy={copy}
+        />
       ) : (
-        <ProjectNotFound />
+        <ProjectNotFound copy={copy} />
       );
     }
   }
@@ -1544,21 +1766,40 @@ function App() {
     try {
       experienceSlug = decodeURIComponent(experienceMatch[1]);
     } catch {
-      pageContent = <ExperienceNotFound />;
+      pageContent = <ExperienceNotFound copy={copy} />;
     }
     if (!pageContent) {
-      const experience = experiencesBySlug[experienceSlug];
+      const experience = experiences.find(
+        (item) => item.slug === experienceSlug,
+      );
       pageContext = { kind: "experience", slug: experienceSlug };
       pageContent = experience ? (
-        <ExperienceDetailPage experience={experience} />
+        <ExperienceDetailPage
+          experience={experience}
+          experiences={experiences}
+          locale={locale}
+          onLocaleToggle={toggleLocale}
+          copy={copy}
+        />
       ) : (
-        <ExperienceNotFound />
+        <ExperienceNotFound copy={copy} />
       );
     }
   }
 
   if (!pageContent) {
-    pageContent = <PortfolioHome onAssistantIntro={setAssistantIntro} />;
+    pageContent = (
+      <PortfolioHome
+        onAssistantIntro={setAssistantIntro}
+        onHeroActiveChange={setHeroActive}
+        onHeroScrollActivity={reportHeroScrollActivity}
+        locale={locale}
+        onLocaleToggle={toggleLocale}
+        copy={copy}
+        experiences={experiences}
+        projects={projects}
+      />
+    );
   }
 
   return (
@@ -1567,6 +1808,9 @@ function App() {
       <DigitalAssistant
         hoverIntro={assistantIntro}
         pageContext={pageContext}
+        heroActive={pageContext.kind === "home" && heroActive}
+        heroScrollRevision={heroScrollRevision}
+        locale={locale}
       />
     </>
   );
