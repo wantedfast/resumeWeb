@@ -1,3 +1,5 @@
+import { withBasePath } from "./base-path.js";
+
 const assistantVoiceContent = {
   en: {
     greeting:
@@ -93,19 +95,21 @@ const voiceLabels = {
 
 function getGreetingAudio(language) {
   if (language === "zh") {
-    return "/assets/luo-zhaoyue-greeting-zh-v3.mp3";
+    return withBasePath("/assets/luo-zhaoyue-greeting-zh-v3.mp3");
   }
   if (language === "ja") {
-    return "/assets/luo-zhaoyue-greeting-ja-v3.mp3";
+    return withBasePath("/assets/luo-zhaoyue-greeting-ja-v3.mp3");
   }
-  return "/assets/luo-zhaoyue-greeting-v3.mp3";
+  return withBasePath("/assets/luo-zhaoyue-greeting-v3.mp3");
 }
 
 function getIntroAudio(language, id) {
   const [kind, slug] = id.split(":");
   const prefix = kind === "experience" ? "experience" : "project";
   const directory = language === "en" ? "" : `${language}/`;
-  return `/assets/assistant-voice/${directory}${prefix}-${slug}-v3.mp3`;
+  return withBasePath(
+    `/assets/assistant-voice/${directory}${prefix}-${slug}-v3.mp3`,
+  );
 }
 
 function getAssistantText(language, id) {

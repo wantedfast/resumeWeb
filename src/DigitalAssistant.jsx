@@ -17,12 +17,13 @@ import {
   getIntroAudio,
   voiceLabels,
 } from "./assistant-locales.js";
+import { withBasePath } from "./base-path.js";
 
-const AWAKE_IMAGE = "/assets/luo-zhaoyue-front-idle-v2.png";
-const MOUTH_HALF_IMAGE = "/assets/luo-zhaoyue-mouth-half-v1.png";
-const MOUTH_OPEN_IMAGE = "/assets/luo-zhaoyue-mouth-open-v1.png";
+const AWAKE_IMAGE = withBasePath("/assets/luo-zhaoyue-front-idle-v2.png");
+const MOUTH_HALF_IMAGE = withBasePath("/assets/luo-zhaoyue-mouth-half-v1.png");
+const MOUTH_OPEN_IMAGE = withBasePath("/assets/luo-zhaoyue-mouth-open-v1.png");
 const DORMANT_PIXEL_IMAGE =
-  "/assets/luo-zhaoyue-8bit-sleeping-v1.png";
+  withBasePath("/assets/luo-zhaoyue-8bit-sleeping-v1.png");
 const AWAKE_SESSION_KEY = "luo-zhaoyue-awake";
 const GREETING_SESSION_KEY = "luo-zhaoyue-v3-greeting-played";
 

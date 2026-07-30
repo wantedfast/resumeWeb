@@ -25,6 +25,7 @@ import {
   heroByLocale,
   siteCopy,
 } from "./site-locales.js";
+import { stripBasePath, withBasePath } from "./base-path.js";
 
 const FRAME_COUNT = 362;
 const HERO_CAMERA_END = 0.88;
@@ -142,7 +143,9 @@ function clamp(value, min = 0, max = 1) {
 }
 
 function framePath(index) {
-  return `/assets/hero-sequence-4k/frame-${String(index + 1).padStart(4, "0")}.webp`;
+  return withBasePath(
+    `/assets/hero-sequence-4k/frame-${String(index + 1).padStart(4, "0")}.webp`,
+  );
 }
 
 function drawCover(canvas, image, focusX = 0.5) {
@@ -781,7 +784,7 @@ function ProjectCarousel({ items, onAssistantIntro, locale }) {
           <article className="project-card" key={project.slug}>
             <a
               className="project-card__link"
-              href={`/projects/${project.slug}`}
+              href={withBasePath(`/projects/${project.slug}`)}
               aria-label={
                 locale === "zh"
                   ? `查看 ${project.title} 项目`
@@ -806,7 +809,7 @@ function ProjectCarousel({ items, onAssistantIntro, locale }) {
             >
               <div className="project-image">
                 <img
-                  src={project.image}
+                  src={withBasePath(project.image)}
                   alt={project.imageAlt}
                   loading="lazy"
                   decoding="async"
@@ -1022,7 +1025,7 @@ function LanyardProfile({ open, onClose, locale, copy }) {
             <h2 id="profile-card-title" className="sr-only">{copy.profile.title}</h2>
             <img
               className="identity-card__exact-front"
-              src="/assets/wang-xinlong-card-exact.png"
+              src={withBasePath("/assets/wang-xinlong-card-exact.png")}
               alt={copy.profile.alt}
               draggable="false"
             />
@@ -1119,7 +1122,11 @@ function PortfolioHome({
             <Translate size={15} weight="bold" />
             {copy.nav.switchLanguage}
           </button>
-          <a className="resume-button" href="/Wang-Xinlong-Resume.pdf" download>
+          <a
+            className="resume-button"
+            href={withBasePath("/Wang-Xinlong-Resume.pdf")}
+            download
+          >
             <span>{copy.nav.resume}</span>
             <DownloadSimple size={15} weight="bold" />
           </a>
@@ -1169,7 +1176,9 @@ function PortfolioHome({
           <div className="about-portrait" data-reveal>
             <div className="about-portrait__card-photo">
               <img
-                src="/assets/wang-xinlong-portrait-selected.png"
+                src={withBasePath(
+                  "/assets/wang-xinlong-portrait-selected.png",
+                )}
                 alt={copy.about.portraitAlt}
               />
             </div>
@@ -1208,7 +1217,7 @@ function PortfolioHome({
           {experiences.map((item, index) => (
             <a
               className="experience-row"
-              href={`/experience/${item.slug}`}
+              href={withBasePath(`/experience/${item.slug}`)}
               key={item.slug}
               data-reveal
               aria-label={
@@ -1339,7 +1348,9 @@ function PortfolioHome({
             <a href="https://github.com/wantedfast" target="_blank" rel="noreferrer">
               <GithubLogo size={15} /> GitHub
             </a>
-            <a href="/Wang-Xinlong-Resume.pdf" download>{copy.nav.resume}</a>
+            <a href={withBasePath("/Wang-Xinlong-Resume.pdf")} download>
+              {copy.nav.resume}
+            </a>
           </div>
           <div>
             <span className="footer-label">{copy.footer.skills}</span>
@@ -1413,7 +1424,7 @@ function ExperienceDetailPage({
             {experiences.map((item, index) => (
               <a
                 className={item.slug === experience.slug ? "is-active" : ""}
-                href={`/experience/${item.slug}`}
+                href={withBasePath(`/experience/${item.slug}`)}
                 aria-current={
                   item.slug === experience.slug ? "page" : undefined
                 }
@@ -1531,7 +1542,7 @@ function ProjectDetailPage({
             {projects.map((item, index) => (
               <a
                 className={item.slug === project.slug ? "is-active" : ""}
-                href={`/projects/${item.slug}`}
+                href={withBasePath(`/projects/${item.slug}`)}
                 aria-current={item.slug === project.slug ? "page" : undefined}
                 key={item.slug}
               >
@@ -1731,7 +1742,9 @@ function App() {
   let pageContent;
   let pageContext = { kind: "home", slug: null };
 
-  const projectMatch = window.location.pathname.match(
+  const applicationPath = stripBasePath(window.location.pathname);
+
+  const projectMatch = applicationPath.match(
     /^\/projects\/([^/]+)\/?$/,
   );
   if (projectMatch) {
@@ -1758,7 +1771,7 @@ function App() {
     }
   }
 
-  const experienceMatch = window.location.pathname.match(
+  const experienceMatch = applicationPath.match(
     /^\/experience\/([^/]+)\/?$/,
   );
   if (!pageContent && experienceMatch) {
